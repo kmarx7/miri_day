@@ -40,9 +40,9 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen, isPro 
               onClick={() => onOpen(item)}
               className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-3 text-left hover:bg-[#FFF9D9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
             >
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">{item.title}</span>
-                <span className="mt-0.5 block text-xs text-[#8A6517]">
+              <span className="flex min-w-0 items-baseline gap-2">
+                <span className="min-w-0 truncate text-sm font-semibold">{item.title}</span>
+                <span className="shrink-0 whitespace-nowrap text-xs text-[#8A6517]">
                   {item.isLunar && item.lunarMonth && item.lunarDay
                     ? `음력 ${item.lunarMonth}.${item.lunarDay}`
                     : formatShortDate(item.dueDate)}
