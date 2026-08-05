@@ -8,6 +8,7 @@ import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
 import { evaluateItemCreation, FEATURES, requirePro } from './services/entitlementService.js'
 import { registerAndroidBackButton } from './services/nativeAppService.js'
+import { syncAllItemNotifications } from './services/notificationService.js'
 import { getProStatus } from './services/storageService.js'
 import HomeScreen from './screens/HomeScreen.jsx'
 import {
@@ -168,6 +169,12 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    syncAllItemNotifications(items, { isPro }).catch((error) => {
+      console.error('Android 로컬 알림을 동기화하지 못했습니다.', error)
+    })
+  }, [isPro, items])
+
   let content
   if (screen === SCREENS.CATEGORY) {
     content = (
@@ -263,7 +270,7 @@ export default function App() {
             isPro={isPro}
             onClose={closeItemEditor}
             onSave={saveItem}
-            onRequirePro={() => requestPro(FEATURES.RECURRING_SCHEDULES)}
+            onRequirePro={requestPro}
           />
         </Suspense>
       )}

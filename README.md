@@ -55,6 +55,22 @@ npm run android:bundle
 
 결과는 `android/app/build/outputs/bundle/release/app-release.aab`에 생성됩니다. Play 배포 전에는 별도의 업로드 키와 릴리스 서명 설정이 필요합니다.
 
+## Android 로컬 알림
+
+- 알림은 오전 9시(Asia/Seoul)에 예약됩니다.
+- Free는 당일 알림, Pro는 D-7·D-3·하루 전·당일 및 반복·음력 자동 일정을 지원합니다.
+- Android 13 이상에서는 처음 알림을 저장할 때 시스템 알림 권한을 요청합니다.
+- 권한을 거부했다면 Android 설정의 `앱 > 미리꼭 > 알림`에서 다시 허용합니다.
+- 정확 알람 특수 권한은 요청하지 않습니다. 일정 알림은 배터리 정책에 따라 지정 시각 부근에 표시될 수 있습니다.
+- 예약은 기기에만 저장되며, Capacitor 복원 리시버가 기기 재부팅 후 남은 예약을 복원합니다.
+
+실제 기기에서는 `scheduleFiveMinuteTestNotification()` 인터페이스와 일정 날짜를 이용해 다음 항목을 확인합니다.
+
+- 앱 전면·백그라운드·종료 상태
+- 일정 수정·삭제·완료 후 기존 알림 제거
+- 반복 일정과 음력 기념일의 다음 발생일
+- 알림 권한 거부 후 설정 안내
+
 ## 주요 파일
 
 ```text
@@ -64,6 +80,8 @@ src/index.css         Tailwind CSS 진입점과 기본 폰트
 src/utils/lunar.js    음력 변환과 D-Day 유틸리티
 src/services/entitlementService.js  Free·Pro 권한 정책
 src/services/purchaseService.js     Google Play Billing 연결 인터페이스
+src/services/notificationService.js Android 로컬 알림 권한과 예약 동기화
+src/utils/notifications.js          알림 ID, 시각, 반복 발생 일정 계산
 capacitor.config.ts                 Capacitor 앱 ID와 웹 자산 설정
 android/                            Android Studio 프로젝트
 ```

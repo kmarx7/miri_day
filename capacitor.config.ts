@@ -1,4 +1,5 @@
 /// <reference types="@capacitor/app" />
+/// <reference types="@capacitor/local-notifications" />
 
 import type { CapacitorConfig } from '@capacitor/cli'
 
@@ -18,6 +19,10 @@ const config: CapacitorConfig = {
   plugins: {
     App: {
       disableBackButtonHandler: true,
+    },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_mirikkok',
+      iconColor: '#171717',
     },
   },
 }
