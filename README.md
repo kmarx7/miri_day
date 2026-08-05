@@ -1,28 +1,50 @@
-# 미리꼭 - Vite + React + Tailwind 스타터
+# 미리꼭
 
-## 실행
-```
+개인 일정, 할 일, 지출, 기념일을 한곳에서 관리하는 Vite + React + Tailwind 앱입니다.
+
+현재 저장소는 편집 가능한 React 실행 기반과 UI 프로토타입을 포함합니다. 실제 아이템 저장, 목록 관리, 캘린더, Android 결제 기능은 후속 단계에서 구현합니다.
+
+## 개발 환경
+
+- Node.js 18 이상
+- npm
+
+## 설치 및 실행
+
+```bash
 npm install
 npm run dev
 ```
-개발용 라이선스 키: MIRI-TEST-KEY 입력하면 Pro 활성화 (Lemon Squeezy 연동 전)
 
-## 포함된 것
-- 홈: 하나만 보이고 화살표로 펼쳐보기 배너 + 2x2 카드 + 오늘 하이라이트 4+더보기
-- 리스트: 스와이프 오른쪽 완료 / 왼쪽 삭제 + 실행취소 스낵바
-- 입력 모달: 카테고리 칩, 금액 조건부 노출, 음력 토글 + lunar-javascript 변환
-- 페이월: 정가 9,900 → 한정 5,900 (-40%) 한정 기간 문구
-- utils/lunar.js: 음력→양력, D-Day, 올해 양력 구하기
-- utils/license.js: Lemon Squeezy 검증 + 목업
+개발 서버가 출력한 로컬 URL을 브라우저에서 엽니다.
 
-## Lemon Squeezy 연동 방법
-1. lemonsqueezy.com 가입 → Store 생성 → Product "미리꼭 Pro" 생성
-2. Variants: Default ₩9,900, Discount ₩5,900 (쿠폰 또는 별도 Variant)
-3. Settings → API Keys → API Key 생성
-4. 프론트 .env에 VITE_LEMON_API_KEY=...
-5. 실제 검증은 서버에서 해야 안전하지만 MVP는 클라이언트 검증으로 OK (utils/license.js 참고)
+## 프로덕션 빌드
 
-## 다음 할 일 (개발자)
-- Capacitor로 iOS/Android 래퍼 (알림 위해)
-- 위젯, 생체인증 잠금은 네이티브 플러그인 추가 후
-- App Store IAP는 RevenueCat으로 교체
+```bash
+npm run build
+npm run preview
+```
+
+빌드 결과는 `dist/`에 생성됩니다.
+
+## 주요 파일
+
+```text
+src/main.jsx          React 진입점
+src/App.jsx           현재 UI 프로토타입
+src/index.css         Tailwind CSS 진입점과 기본 폰트
+src/utils/lunar.js    음력 변환과 D-Day 유틸리티
+src/utils/license.js  기존 라이선스 목업 코드
+```
+
+`Mirikkok-Dev-Handoff-v1.html`은 디자인과 동작을 참고하기 위한 독립형 번들입니다. 직접 수정하지 않습니다.
+
+## 개발 원칙
+
+- 기능 명세에 있는 기능만 단계적으로 구현합니다.
+- 실제 편집은 `src/` 소스코드를 기준으로 진행합니다.
+- 기능 단위 브랜치와 커밋을 사용합니다.
+- 각 단계가 끝날 때 `npm run build`를 실행합니다.
+- Lemon Squeezy는 사용하지 않습니다.
+- Android Pro 상품은 Google Play Billing의 일회성 비소모성 평생 이용권으로 구현합니다.
+- Pretendard를 불러오지 못하면 시스템 `sans-serif` 폰트로 표시됩니다.
