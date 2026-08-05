@@ -9,10 +9,10 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
   const today = formatYmd(new Date())
   const todayParts = parseYmdParts(today)
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date(todayParts.year, todayParts.month - 1, 1))
+  const [displayMonth, setDisplayMonth] = useState(() => new Date(todayParts.year, todayParts.month - 1, 1))
   const [selectedDate, setSelectedDate] = useState(today)
-  const monthDays = useMemo(() => getMonthDays(visibleMonth), [visibleMonth])
-  const monthRange = useMemo(() => getCalendarMonthRange(visibleMonth), [visibleMonth])
+  const monthDays = useMemo(() => getMonthDays(displayMonth), [displayMonth])
+  const monthRange = useMemo(() => getCalendarMonthRange(displayMonth), [displayMonth])
   const occurrences = useMemo(() => getOccurrencesForRange(items, monthRange.start, monthRange.end, {
     includeRecurring: isPro && !isSample,
   }), [isPro, isSample, items, monthRange.end, monthRange.start])
@@ -28,8 +28,8 @@ export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
   const selectedOccurrences = occurrencesByDate.get(selectedDate) ?? []
 
   const changeMonth = (amount) => {
-    const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + amount, 1)
-    setVisibleMonth(nextMonth)
+    const nextMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + amount, 1)
+    setDisplayMonth(nextMonth)
     setSelectedDate(getCalendarMonthRange(nextMonth).start)
   }
 
@@ -41,10 +41,10 @@ export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
         description="날짜를 선택해 양력과 음력 일정을 함께 확인해요."
       />
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-4" aria-label={formatMonthTitle(visibleMonth)}>
+      <section className="rounded-2xl border border-gray-200 bg-white p-4" aria-label={formatMonthTitle(displayMonth)}>
         <div className="flex items-center justify-between gap-3">
           <button type="button" onClick={() => changeMonth(-1)} aria-label="이전 달" className="grid h-11 w-11 place-items-center rounded-full bg-gray-100 text-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-black">‹</button>
-          <h2 className="text-base font-bold" aria-live="polite">{formatMonthTitle(visibleMonth)}</h2>
+          <h2 className="text-base font-bold" aria-live="polite">{formatMonthTitle(displayMonth)}</h2>
           <button type="button" onClick={() => changeMonth(1)} aria-label="다음 달" className="grid h-11 w-11 place-items-center rounded-full bg-gray-100 text-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-black">›</button>
         </div>
 

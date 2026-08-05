@@ -8,10 +8,12 @@ import {
   createItem,
   deleteItem,
   exportData,
+  getProStatus,
   getItems,
   importData,
   restoreDeletedItem,
   restoreItem,
+  setProStatus,
   updateItem,
 } from '../src/services/storageService.js'
 
@@ -114,6 +116,16 @@ test('내보내기와 가져오기 인터페이스가 사용자 데이터를 복
   assert.equal(result.success, true)
   assert.equal(result.importedCount, 1)
   assert.equal(getItems()[0].title, '우산')
+})
+
+test('백업 데이터로 Pro 권한을 내보내거나 활성화하지 않는다', () => {
+  setProStatus(false)
+  const backup = exportData()
+  assert.equal(Object.hasOwn(backup, 'pro'), false)
+
+  const result = importData({ ...backup, pro: true })
+  assert.equal(result.success, true)
+  assert.equal(getProStatus(), false)
 })
 
 test('localStorage 접근이 불가능하면 메모리 저장소로 대체한다', () => {

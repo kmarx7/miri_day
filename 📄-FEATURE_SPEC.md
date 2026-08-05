@@ -4,7 +4,7 @@
 - 앱 이름: 미리꼭 (미리 챙기는 꼭 필요한 것들)
 - 컨셉: 로컬 전용, 할 것/낼 것/살 것/생각할 것/기억할 것 올인원
 - 타겟: 20-28세 대학생/사회초년생
-- 기술: Vite + React + Tailwind, 로컬 저장소(localStorage), lunar-javascript, Lemon Squeezy
+- 기술: Vite + React + Tailwind, 로컬 저장소(localStorage), lunar-javascript, Google Play Billing 연결 인터페이스
 
 ## 1. 홈 화면
 - [x] 헤더: 앱 이름 + 날짜 + "모든 데이터는 이 기기에만 저장돼요 🔒"
@@ -41,7 +41,7 @@
 - [x] D-Day: getThisYearSolarForLunar(month,day) → 올해 양력 계산, 이미 지났으면 내년
 - [x] Pro: 매년 1월 1일 자동 재계산
 
-## 5. Pro / 결제 (Lemon Squeezy)
+## 5. Pro / 결제 (Google Play Billing 예정)
 - [x] Free: 기념할 것 5개, 테마 1개(소프트), 음력 수동 변환, 기본 백업, 카드 50개까지
 - [x] Pro 혜택 7개:
   1. 테마 5종+앱 아이콘 6종
@@ -51,13 +51,13 @@
   5. 생체인증 잠금 + 암호화 백업
   6. 위젯 3종
   7. 광고 없음 + 평생 업데이트
-- [x] 가격: 정가 9,900 → 한정 기간 5,900 (-40%), "출시 기념 한정" 문구만, 기간 명시 없음
+- [x] 가격: 출시 기념 한정 할인, 정가 9,900원, 한정 할인가 5,900원, 40% 할인, 기간 명시 없음
 - [x] 페이월 UI: 취소선 가격, -40% 뱃지, 비교표, 리뷰 2개, CTA 고정
-- [x] 검증: POST https://api.lemonsqueezy.com/v1/licenses/validate { license_key }, 목업은 MIRI-로 시작하면 통과, localStorage에 pro=true 저장
-- [x] 트리거: 기념일 5개 추가 시도, 앱 사용 3일, 아이템 20개 시점에 페이월 노출
+- [x] 권한: entitlementService에서 Free 한도와 Pro 기능을 판정하고, 개발 모드의 명시적 목업 버튼으로만 Pro 상태 테스트
+- [x] 트리거: 여섯 번째 기억할 것, 51번째 전체 아이템, 반복 일정, 돈 리포트 상세, Pro 테마 선택 시 페이월 노출
 
 ## 6. 데이터 모델
-- localStorage 키: mirikkok_items, mirikkok_pro, mirikkok_license, mirikkok_theme
+- localStorage 키: mirikkok_items, mirikkok_pro, mirikkok_theme, mirikkok_schema_version
 - 구조는 App.jsx 참고
 
 ## 7. 보안/프라이버시
@@ -68,6 +68,6 @@
 - [ ] 4개 화면 라우팅 없이 상태로 전환 (MVP)
 - [ ] lunar-javascript 변환 함수 테스트 (윤달 포함)
 - [ ] 스와이프 터치/마우스 테스트
-- [ ] Lemon Squeezy Product 생성 및 테스트 키 발급
+- [ ] Android Google Play Billing 일회성 비소모성 상품 연결
 - [ ] PWA manifest, 아이콘, 스플래시
 - [ ] iOS/Android 빌드 시 capacitor local-notifications 추가

@@ -6,6 +6,7 @@ import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { CATEGORIES } from './constants/categories.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
+import { evaluateItemCreation, FEATURES, requirePro } from './services/entitlementService.js'
 import { getProStatus } from './services/storageService.js'
 import CalendarScreen from './screens/CalendarScreen.jsx'
 import CategoryListScreen from './screens/CategoryListScreen.jsx'
@@ -25,7 +26,8 @@ export default function App() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
-  const [isPro] = useState(() => getProStatus())
+  const [isPro, setIsPro] = useState(() => getProStatus())
+  const [paywallReason, setPaywallReason] = useState(null)
   const {
     items,
     sampleItems,
@@ -48,8 +50,16 @@ export default function App() {
   }
 
   const navigate = (nextScreen) => {
+    if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
     setScreen(nextScreen)
   }
+
+  const openPaywall = (decision) => {
+    setPaywallReason(decision)
+    setScreen(SCREENS.PRO)
+  }
+
+  const requestPro = (feature) => requirePro(feature, { isPro }, openPaywall)
 
   const openNewItem = () => {
     setEditingItem(null)
@@ -68,9 +78,18 @@ export default function App() {
 
   const saveItem = (values) => {
     const storedItemExists = editingItem && items.some((item) => item.id === editingItem.id)
-    if (storedItemExists) updateItem(editingItem.id, values)
-    else createItem(values)
+    if (storedItemExists) {
+      updateItem(editingItem.id, values)
+    } else {
+      const decision = evaluateItemCreation(items, values, isPro)
+      if (!decision.allowed) {
+        openPaywall(decision)
+        return false
+      }
+      createItem(values)
+    }
     setSelectedCategory(values.category)
+    return true
   }
 
   let content
@@ -92,7 +111,13 @@ export default function App() {
   } else if (screen === SCREENS.CALENDAR) {
     content = <CalendarScreen items={displayItems} isSample={isSample} isPro={isPro} onEditItem={openItemEditor} />
   } else if (screen === SCREENS.PRO) {
-    content = <ProScreen />
+    content = (
+      <ProScreen
+        isPro={isPro}
+        reason={paywallReason}
+        onEntitlementChange={setIsPro}
+      />
+    )
   } else {
     content = (
       <HomeScreen
@@ -130,6 +155,7 @@ export default function App() {
         isPro={isPro}
         onClose={closeItemEditor}
         onSave={saveItem}
+        onRequirePro={() => requestPro(FEATURES.RECURRING_SCHEDULES)}
       />
       <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} />
     </>

@@ -34,7 +34,8 @@ src/main.jsx          React 진입점
 src/App.jsx           현재 UI 프로토타입
 src/index.css         Tailwind CSS 진입점과 기본 폰트
 src/utils/lunar.js    음력 변환과 D-Day 유틸리티
-src/utils/license.js  기존 라이선스 목업 코드
+src/services/entitlementService.js  Free·Pro 권한 정책
+src/services/purchaseService.js     Google Play Billing 연결 인터페이스
 ```
 
 `Mirikkok-Dev-Handoff-v1.html`은 디자인과 동작을 참고하기 위한 독립형 번들입니다. 직접 수정하지 않습니다.
@@ -45,6 +46,6 @@ src/utils/license.js  기존 라이선스 목업 코드
 - 실제 편집은 `src/` 소스코드를 기준으로 진행합니다.
 - 기능 단위 브랜치와 커밋을 사용합니다.
 - 각 단계가 끝날 때 `npm run build`를 실행합니다.
-- Lemon Squeezy는 사용하지 않습니다.
 - Android Pro 상품은 Google Play Billing의 일회성 비소모성 평생 이용권으로 구현합니다.
+- 실제 결제 연결 전에는 개발 모드의 명시적인 목업 버튼으로만 Pro 권한을 테스트합니다.
 - Pretendard를 불러오지 못하면 시스템 `sans-serif` 폰트로 표시됩니다.

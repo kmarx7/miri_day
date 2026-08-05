@@ -191,7 +191,6 @@ export function exportData() {
     schemaVersion: ITEM_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     items: getItems(),
-    pro: getProStatus(),
     theme: getTheme(),
   }
 }
@@ -216,7 +215,6 @@ export function importData(payload, { merge = false } = {}) {
   }
 
   saveItems(nextItems)
-  if (typeof parsed.pro === 'boolean') setProStatus(parsed.pro)
   if (typeof parsed.theme === 'string') setTheme(parsed.theme)
   safeSet(STORAGE_KEYS.SCHEMA_VERSION, ITEM_SCHEMA_VERSION)
 

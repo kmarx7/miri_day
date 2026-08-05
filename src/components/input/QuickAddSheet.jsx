@@ -21,7 +21,7 @@ const REPEAT_OPTIONS = [
 
 const HISTORY_KEY = 'mirikkokItemEditor'
 
-export default function QuickAddSheet({ open, initialCategory, item, isPro = false, onClose, onSave }) {
+export default function QuickAddSheet({ open, initialCategory, item, isPro = false, onClose, onSave, onRequirePro }) {
   const [category, setCategory] = useState(initialCategory ?? CATEGORIES.TODO)
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
@@ -167,6 +167,10 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
     }
     if (value !== REPEAT_TYPES.NONE && !isPro && value !== item?.repeatType) {
       setRepeatNotice('반복 일정은 Pro에서 사용할 수 있어요. PRO 화면에서 이용권을 확인해 주세요.')
+      if (onRequirePro) {
+        onRequirePro()
+        requestClose()
+      }
       return
     }
 
