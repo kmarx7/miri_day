@@ -7,6 +7,7 @@ import { CATEGORIES } from './constants/categories.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
 import { evaluateItemCreation, FEATURES, requirePro } from './services/entitlementService.js'
+import { registerAndroidBackButton } from './services/nativeAppService.js'
 import { getProStatus } from './services/storageService.js'
 import HomeScreen from './screens/HomeScreen.jsx'
 import {
@@ -14,6 +15,7 @@ import {
   createScreenHistoryState,
   getHistoryDepth,
   getScreenFromHistory,
+  shouldNavigateBack,
 } from './utils/navigation.js'
 
 const CalendarScreen = lazy(() => import('./screens/CalendarScreen.jsx'))
@@ -144,6 +146,26 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    let removeBackButtonListener = () => {}
+
+    registerAndroidBackButton(({ exitApp }) => {
+      if (shouldNavigateBack(window.history.state)) window.history.back()
+      else exitApp()
+    }).then((removeListener) => {
+      if (active) removeBackButtonListener = removeListener
+      else removeListener()
+    }).catch((error) => {
+      console.error('Android 뒤로 가기 처리를 등록하지 못했습니다.', error)
+    })
+
+    return () => {
+      active = false
+      removeBackButtonListener()
+    }
   }, [])
 
   let content

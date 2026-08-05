@@ -2,12 +2,15 @@
 
 개인 일정, 할 일, 지출, 기념일을 한곳에서 관리하는 Vite + React + Tailwind 앱입니다.
 
-현재 저장소는 편집 가능한 React 실행 기반과 UI 프로토타입을 포함합니다. 실제 아이템 저장, 목록 관리, 캘린더, Android 결제 기능은 후속 단계에서 구현합니다.
+현재 저장소는 편집 가능한 React 앱과 Capacitor Android 프로젝트를 포함합니다. Android 결제와 알림은 아직 연결하지 않았습니다.
 
 ## 개발 환경
 
-- Node.js 18 이상
+- Node.js 22 이상
 - npm
+- JDK 21
+- Android Studio 2025.2.1 이상
+- Android SDK Platform 36과 Build Tools 36
 
 ## 설치 및 실행
 
@@ -27,6 +30,31 @@ npm run preview
 
 빌드 결과는 `dist/`에 생성됩니다.
 
+## Android 실행
+
+웹 빌드와 Android 동기화를 한 번에 실행합니다.
+
+```bash
+npm run android:sync
+```
+
+Android Studio에서 프로젝트를 열거나 연결 기기·에뮬레이터에서 실행합니다.
+
+```bash
+npm run android
+npm run android:run
+```
+
+Android Studio가 기본 경로에 없다면 `CAPACITOR_ANDROID_STUDIO_PATH`에 실행 파일 경로를 지정합니다. 로컬 JDK와 SDK 경로는 Android Studio 또는 셸 환경에서 설정하며 저장소에 커밋하지 않습니다.
+
+Google Play용 릴리스 AAB 기반 파일은 다음 명령으로 만듭니다.
+
+```bash
+npm run android:bundle
+```
+
+결과는 `android/app/build/outputs/bundle/release/app-release.aab`에 생성됩니다. Play 배포 전에는 별도의 업로드 키와 릴리스 서명 설정이 필요합니다.
+
 ## 주요 파일
 
 ```text
@@ -36,6 +64,8 @@ src/index.css         Tailwind CSS 진입점과 기본 폰트
 src/utils/lunar.js    음력 변환과 D-Day 유틸리티
 src/services/entitlementService.js  Free·Pro 권한 정책
 src/services/purchaseService.js     Google Play Billing 연결 인터페이스
+capacitor.config.ts                 Capacitor 앱 ID와 웹 자산 설정
+android/                            Android Studio 프로젝트
 ```
 
 `Mirikkok-Dev-Handoff-v1.html`은 디자인과 동작을 참고하기 위한 독립형 번들입니다. 직접 수정하지 않습니다.

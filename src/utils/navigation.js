@@ -1,5 +1,6 @@
 export const APP_SCREEN_STATE_KEY = 'mirikkokScreen'
 export const APP_HISTORY_DEPTH_KEY = 'mirikkokHistoryDepth'
+const ITEM_EDITOR_HISTORY_KEY = 'mirikkokItemEditor'
 
 export function getHistoryDepth(state) {
   const depth = state?.[APP_HISTORY_DEPTH_KEY]
@@ -18,4 +19,8 @@ export function createScreenHistoryState(screen, currentState, { replace = false
 export function getScreenFromHistory(state, validScreens, fallback) {
   const screen = state?.[APP_SCREEN_STATE_KEY]
   return validScreens.includes(screen) ? screen : fallback
+}
+
+export function shouldNavigateBack(state) {
+  return state?.[ITEM_EDITOR_HISTORY_KEY] === true || getHistoryDepth(state) > 0
 }
