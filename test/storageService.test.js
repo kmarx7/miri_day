@@ -8,13 +8,17 @@ import {
   createItem,
   deleteItem,
   exportData,
+  getTheme,
   getProStatus,
   getItems,
   importData,
+  resetUserData,
   restoreDeletedItem,
   restoreItem,
   setProStatus,
+  setTheme,
   updateItem,
+  validateBackupData,
 } from '../src/services/storageService.js'
 
 class LocalStorageMock {
@@ -116,6 +120,8 @@ test('내보내기와 가져오기 인터페이스가 사용자 데이터를 복
   assert.equal(result.success, true)
   assert.equal(result.importedCount, 1)
   assert.equal(getItems()[0].title, '우산')
+  assert.equal(backup.appName, '미리꼭')
+  assert.equal(typeof backup.settings.theme, 'string')
 })
 
 test('백업 데이터로 Pro 권한을 내보내거나 활성화하지 않는다', () => {
@@ -126,6 +132,60 @@ test('백업 데이터로 Pro 권한을 내보내거나 활성화하지 않는�
   const result = importData({ ...backup, pro: true })
   assert.equal(result.success, true)
   assert.equal(getProStatus(), false)
+})
+
+test('잘못된 백업은 기존 데이터를 변경하지 않는다', () => {
+  createItem({ category: CATEGORIES.TODO, title: '기존 항목' })
+  const invalidBackup = {
+    schemaVersion: ITEM_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    appName: '미리꼭',
+    settings: { theme: 'soft' },
+    items: [{ category: 'invalid', title: '잘못된 항목' }],
+  }
+
+  assert.equal(validateBackupData(invalidBackup).success, false)
+  assert.equal(importData(invalidBackup).success, false)
+  assert.deepEqual(getItems().map((item) => item.title), ['기존 항목'])
+})
+
+test('백업 아이템의 필수 필드와 날짜 구조를 검증한다', () => {
+  const backup = exportData()
+  backup.items = [{ ...createItemModel({ category: CATEGORIES.PAYMENT, title: '정상', amount: 1000 }), dueDate: '2026-02-30' }]
+
+  assert.equal(validateBackupData(backup).success, false)
+  delete backup.items[0].memo
+  assert.equal(validateBackupData(backup).success, false)
+})
+
+test('병합은 중복 ID를 갱신하고 교체는 기존 항목을 제거한다', () => {
+  const existing = createItem({ category: CATEGORIES.PAYMENT, title: '기존 월세', amount: 90000 })
+  const backup = exportData()
+  backup.items = [
+    { ...existing, title: '수정된 월세', amount: 95000 },
+    createItemModel({ id: 'new-item', category: CATEGORIES.SHOPPING, title: '새 항목', amount: 12000 }),
+  ]
+
+  const merged = importData(backup, { merge: true })
+  assert.equal(merged.duplicateCount, 1)
+  assert.equal(getItems().length, 2)
+  assert.equal(getItems().find((item) => item.id === existing.id).title, '수정된 월세')
+
+  const replacement = { ...backup, items: [backup.items[1]] }
+  assert.equal(importData(replacement, { merge: false }).success, true)
+  assert.deepEqual(getItems().map((item) => item.id), ['new-item'])
+})
+
+test('데이터 초기화는 아이템과 설정만 지우고 Pro 권한은 유지한다', () => {
+  createItem({ category: CATEGORIES.TODO, title: '삭제할 항목' })
+  setTheme('midnight')
+  setProStatus(true)
+
+  resetUserData()
+
+  assert.deepEqual(getItems(), [])
+  assert.equal(getTheme(), 'soft')
+  assert.equal(getProStatus(), true)
 })
 
 test('localStorage 접근이 불가능하면 메모리 저장소로 대체한다', () => {

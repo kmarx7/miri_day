@@ -10,13 +10,17 @@ import { evaluateItemCreation, FEATURES, requirePro } from './services/entitleme
 import { getProStatus } from './services/storageService.js'
 import CalendarScreen from './screens/CalendarScreen.jsx'
 import CategoryListScreen from './screens/CategoryListScreen.jsx'
+import DataManagementScreen from './screens/DataManagementScreen.jsx'
 import HomeScreen from './screens/HomeScreen.jsx'
+import MoneyReportScreen from './screens/MoneyReportScreen.jsx'
 import ProScreen from './screens/ProScreen.jsx'
 
 const SCREENS = Object.freeze({
   HOME: 'home',
   CATEGORY: 'category',
   CALENDAR: 'calendar',
+  REPORT: 'report',
+  DATA: 'data',
   PRO: 'pro',
 })
 
@@ -38,11 +42,14 @@ export default function App() {
     completeItem,
     restoreItem,
     undoDelete,
+    refresh,
   } = useItems({ sampleItems: SAMPLE_ITEMS })
 
   const isSample = items.length === 0
   const displayItems = isSample ? sampleItems : items
-  const activeTab = screen === SCREENS.CATEGORY ? SCREENS.HOME : screen
+  const activeTab = [SCREENS.CATEGORY, SCREENS.REPORT, SCREENS.DATA].includes(screen)
+    ? SCREENS.HOME
+    : screen
 
   const selectCategory = (category) => {
     setSelectedCategory(category)
@@ -110,6 +117,24 @@ export default function App() {
     )
   } else if (screen === SCREENS.CALENDAR) {
     content = <CalendarScreen items={displayItems} isSample={isSample} isPro={isPro} onEditItem={openItemEditor} />
+  } else if (screen === SCREENS.REPORT) {
+    content = (
+      <MoneyReportScreen
+        items={displayItems}
+        isPro={isPro}
+        isSample={isSample}
+        onBack={() => navigate(SCREENS.HOME)}
+        onRequirePro={() => requestPro(FEATURES.MONEY_REPORT_DETAIL)}
+      />
+    )
+  } else if (screen === SCREENS.DATA) {
+    content = (
+      <DataManagementScreen
+        itemCount={items.length}
+        onBack={() => navigate(SCREENS.HOME)}
+        onDataChanged={refresh}
+      />
+    )
   } else if (screen === SCREENS.PRO) {
     content = (
       <ProScreen
@@ -126,6 +151,8 @@ export default function App() {
         isPro={isPro}
         onSelectCategory={selectCategory}
         onEditItem={openItemEditor}
+        onOpenReport={() => navigate(SCREENS.REPORT)}
+        onOpenBackup={() => navigate(SCREENS.DATA)}
       />
     )
   }

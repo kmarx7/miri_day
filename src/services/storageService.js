@@ -1,4 +1,6 @@
-import { ITEM_SCHEMA_VERSION, createItemModel, normalizeStoredItem } from '../models/item.js'
+import { isCategory } from '../constants/categories.js'
+import { ITEM_SCHEMA_VERSION, REPEAT_TYPES, createItemModel, normalizeStoredItem } from '../models/item.js'
+import { parseYmdParts } from '../utils/dates.js'
 
 export const STORAGE_KEYS = Object.freeze({
   ITEMS: 'mirikkok_items',
@@ -8,6 +10,7 @@ export const STORAGE_KEYS = Object.freeze({
 })
 
 export const DEFAULT_THEME = 'soft'
+export const APP_NAME = '미리꼭'
 
 const memoryFallback = new Map()
 
@@ -45,6 +48,19 @@ function safeSet(key, value) {
   }
 }
 
+function safeRemove(key) {
+  memoryFallback.delete(key)
+
+  try {
+    const storage = globalThis.localStorage
+    if (!storage) return false
+    storage.removeItem(key)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function parseJson(value, fallback) {
   if (typeof value !== 'string') return fallback
 
@@ -66,6 +82,41 @@ function ensureSchemaVersion() {
 function normalizeItems(items) {
   if (!Array.isArray(items)) return []
   return items.map(normalizeStoredItem).filter(Boolean)
+}
+
+function isValidTimestamp(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value))
+}
+
+function isBackupItemShape(item) {
+  if (!item || typeof item !== 'object') return false
+  const validAmount = item.amount === null || (Number.isFinite(item.amount) && item.amount >= 0)
+  const validDueDate = item.dueDate === null || parseYmdParts(item.dueDate) !== null
+  const validCompletedAt = item.completedAt === null || isValidTimestamp(item.completedAt)
+  const validLunarPart = (value) => value === null || Number.isInteger(value)
+  const validRepeatType = Object.values(REPEAT_TYPES).includes(item.repeatType)
+  const validOffsets = Array.isArray(item.notificationOffsets)
+    && item.notificationOffsets.every((offset) => Number.isInteger(offset) && offset >= 0)
+
+  return typeof item.id === 'string'
+    && item.id.trim().length > 0
+    && isCategory(item.category)
+    && typeof item.title === 'string'
+    && item.title.trim().length > 0
+    && validAmount
+    && validDueDate
+    && typeof item.memo === 'string'
+    && typeof item.completed === 'boolean'
+    && validCompletedAt
+    && typeof item.isLunar === 'boolean'
+    && validLunarPart(item.lunarYear)
+    && validLunarPart(item.lunarMonth)
+    && validLunarPart(item.lunarDay)
+    && typeof item.isLeapMonth === 'boolean'
+    && validRepeatType
+    && validOffsets
+    && isValidTimestamp(item.createdAt)
+    && isValidTimestamp(item.updatedAt)
 }
 
 function saveItems(items) {
@@ -190,8 +241,53 @@ export function exportData() {
   return {
     schemaVersion: ITEM_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    appName: APP_NAME,
     items: getItems(),
-    theme: getTheme(),
+    settings: {
+      theme: getTheme(),
+    },
+  }
+}
+
+/**
+ * Validates the full backup before any persisted data is changed.
+ * Purchase entitlements and authentication values are intentionally ignored.
+ *
+ * @param {unknown} payload
+ */
+export function validateBackupData(payload) {
+  const parsed = typeof payload === 'string' ? parseJson(payload, null) : payload
+  const validHeader = parsed
+    && typeof parsed === 'object'
+    && parsed.appName === APP_NAME
+    && Number.isInteger(parsed.schemaVersion)
+    && parsed.schemaVersion > 0
+    && parsed.schemaVersion <= ITEM_SCHEMA_VERSION
+    && typeof parsed.exportedAt === 'string'
+    && !Number.isNaN(Date.parse(parsed.exportedAt))
+    && Array.isArray(parsed.items)
+    && parsed.settings
+    && typeof parsed.settings === 'object'
+    && typeof parsed.settings.theme === 'string'
+
+  if (!validHeader) {
+    return { success: false, error: '올바른 미리꼭 백업 데이터가 아닙니다.' }
+  }
+
+  if (!parsed.items.every(isBackupItemShape)) {
+    return { success: false, error: '백업에 올바르지 않은 아이템이 포함돼 있습니다.' }
+  }
+  const normalizedItems = parsed.items.map(normalizeStoredItem)
+
+  return {
+    success: true,
+    data: {
+      schemaVersion: parsed.schemaVersion,
+      exportedAt: parsed.exportedAt,
+      appName: APP_NAME,
+      items: normalizedItems,
+      settings: { theme: parsed.settings.theme },
+    },
   }
 }
 
@@ -200,27 +296,34 @@ export function exportData() {
  * @param {{ merge?: boolean }} [options]
  */
 export function importData(payload, { merge = false } = {}) {
-  const parsed = typeof payload === 'string' ? parseJson(payload, null) : payload
-  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.items)) {
-    return { success: false, error: '올바른 미리꼭 백업 데이터가 아닙니다.' }
-  }
+  const validation = validateBackupData(payload)
+  if (!validation.success) return validation
 
-  const importedItems = normalizeItems(parsed.items)
-  let nextItems = importedItems
-
-  if (merge) {
-    const merged = new Map(getItems().map((item) => [item.id, item]))
-    importedItems.forEach((item) => merged.set(item.id, item))
-    nextItems = [...merged.values()]
-  }
+  const { data } = validation
+  const existingItems = merge ? getItems() : []
+  const merged = new Map(existingItems.map((item) => [item.id, item]))
+  let duplicateCount = 0
+  data.items.forEach((item) => {
+    if (merged.has(item.id)) duplicateCount += 1
+    merged.set(item.id, item)
+  })
+  const nextItems = [...merged.values()]
 
   saveItems(nextItems)
-  if (typeof parsed.theme === 'string') setTheme(parsed.theme)
+  setTheme(data.settings.theme)
   safeSet(STORAGE_KEYS.SCHEMA_VERSION, ITEM_SCHEMA_VERSION)
 
   return {
     success: true,
-    importedCount: importedItems.length,
+    importedCount: data.items.length,
     totalCount: nextItems.length,
+    duplicateCount,
   }
+}
+
+export function resetUserData() {
+  safeRemove(STORAGE_KEYS.ITEMS)
+  safeRemove(STORAGE_KEYS.THEME)
+  safeSet(STORAGE_KEYS.SCHEMA_VERSION, ITEM_SCHEMA_VERSION)
+  return { success: true }
 }
