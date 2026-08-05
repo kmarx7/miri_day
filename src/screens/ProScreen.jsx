@@ -85,6 +85,7 @@ export default function ProScreen({ isPro = false, reason, onEntitlementChange }
         type="button"
         onClick={handleRestore}
         disabled={busy}
+        aria-busy={busy}
         className="mt-2 min-h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-600 disabled:text-gray-300"
       >
         {busy ? '구매 내역 확인 중…' : '구매 내역 복원'}

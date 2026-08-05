@@ -1,5 +1,6 @@
 import { getCategoryLabel } from '../../constants/categories.js'
 import { formatCurrency } from '../../utils/currency.js'
+import StatePanel from '../feedback/StatePanel.jsx'
 
 export default function TodayHighlights({ items, expanded, onToggle, onEdit }) {
   const visibleItems = expanded ? items : items.slice(0, 2)
@@ -15,10 +16,10 @@ export default function TodayHighlights({ items, expanded, onToggle, onEdit }) {
         {amountTotal > 0 && <span className="text-sm font-semibold">{formatCurrency(amountTotal)}</span>}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-        {visibleItems.length === 0 ? (
-          <p className="px-4 py-7 text-center text-sm text-gray-400">오늘 예정된 일정이 없어요.</p>
-        ) : (
+      {visibleItems.length === 0 ? (
+        <StatePanel title="오늘 예정된 일정이 없어요." compact />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
           <div className="divide-y divide-gray-100">
             {visibleItems.map((item) => (
               <button
@@ -38,8 +39,8 @@ export default function TodayHighlights({ items, expanded, onToggle, onEdit }) {
               </button>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {items.length > 2 && (
         <button

@@ -3,14 +3,11 @@ import { REPEAT_TYPES } from '../../models/item.js'
 import { formatCurrency } from '../../utils/currency.js'
 import { formatShortDate } from '../../utils/dates.js'
 import { REPEAT_LABELS } from '../../utils/recurrence.js'
+import StatePanel from '../feedback/StatePanel.jsx'
 
 export default function CalendarOccurrenceList({ occurrences, onEdit }) {
   if (occurrences.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-10 text-center">
-        <p className="text-sm text-gray-400">선택한 날짜에 등록된 일정이 없어요.</p>
-      </div>
-    )
+    return <StatePanel title="선택한 날짜에 등록된 일정이 없어요." />
   }
 
   const hasRecurring = occurrences.some(({ repeatType }) => repeatType !== REPEAT_TYPES.NONE)

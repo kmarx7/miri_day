@@ -1,4 +1,5 @@
 import SwipeableItem from './SwipeableItem.jsx'
+import StatePanel from '../feedback/StatePanel.jsx'
 
 export default function ItemList({
   items,
@@ -11,11 +12,7 @@ export default function ItemList({
   showSwipeHint = false,
 }) {
   if (items.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-12 text-center">
-        <p className="text-sm text-gray-400">{emptyMessage}</p>
-      </div>
-    )
+    return <StatePanel title={emptyMessage} />
   }
 
   return (

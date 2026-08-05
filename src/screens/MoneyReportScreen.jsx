@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
+import StatePanel from '../components/feedback/StatePanel.jsx'
 import { CATEGORIES, getCategoryLabel } from '../constants/categories.js'
 import { formatCurrency } from '../utils/currency.js'
 import { formatYmd, parseYmdParts } from '../utils/dates.js'
@@ -56,10 +57,9 @@ export default function MoneyReportScreen({ items, isPro, isSample, onBack, onRe
       </div>
 
       {isEmpty ? (
-        <section className="mt-4 rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-10 text-center">
-          <p className="text-sm font-bold">표시할 금액이 없어요</p>
-          <p className="mt-2 text-xs leading-relaxed text-gray-400">날짜와 금액이 있는 낼 것 또는 살 것을 추가해 보세요.</p>
-        </section>
+        <div className="mt-4">
+          <StatePanel title="표시할 금액이 없어요" description="날짜와 금액이 있는 낼 것 또는 살 것을 추가해 보세요." />
+        </div>
       ) : (
         <>
           <section className="mt-4 rounded-3xl bg-black p-5 text-white" aria-label="돈 리포트 요약">

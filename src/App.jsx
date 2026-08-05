@@ -1,19 +1,27 @@
-import { useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import AppShell from './components/layout/AppShell.jsx'
 import BottomNavigation from './components/layout/BottomNavigation.jsx'
-import QuickAddSheet from './components/input/QuickAddSheet.jsx'
+import StatePanel from './components/feedback/StatePanel.jsx'
 import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { CATEGORIES } from './constants/categories.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
 import { evaluateItemCreation, FEATURES, requirePro } from './services/entitlementService.js'
 import { getProStatus } from './services/storageService.js'
-import CalendarScreen from './screens/CalendarScreen.jsx'
-import CategoryListScreen from './screens/CategoryListScreen.jsx'
-import DataManagementScreen from './screens/DataManagementScreen.jsx'
 import HomeScreen from './screens/HomeScreen.jsx'
-import MoneyReportScreen from './screens/MoneyReportScreen.jsx'
-import ProScreen from './screens/ProScreen.jsx'
+import {
+  APP_SCREEN_STATE_KEY,
+  createScreenHistoryState,
+  getHistoryDepth,
+  getScreenFromHistory,
+} from './utils/navigation.js'
+
+const CalendarScreen = lazy(() => import('./screens/CalendarScreen.jsx'))
+const CategoryListScreen = lazy(() => import('./screens/CategoryListScreen.jsx'))
+const DataManagementScreen = lazy(() => import('./screens/DataManagementScreen.jsx'))
+const MoneyReportScreen = lazy(() => import('./screens/MoneyReportScreen.jsx'))
+const ProScreen = lazy(() => import('./screens/ProScreen.jsx'))
+const QuickAddSheet = lazy(() => import('./components/input/QuickAddSheet.jsx'))
 
 const SCREENS = Object.freeze({
   HOME: 'home',
@@ -23,9 +31,12 @@ const SCREENS = Object.freeze({
   DATA: 'data',
   PRO: 'pro',
 })
+const SCREEN_VALUES = Object.freeze(Object.values(SCREENS))
 
 export default function App() {
-  const [screen, setScreen] = useState(SCREENS.HOME)
+  const [screen, setScreen] = useState(() => (
+    getScreenFromHistory(globalThis.history?.state, SCREEN_VALUES, SCREENS.HOME)
+  ))
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES.TODO)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
@@ -51,19 +62,38 @@ export default function App() {
     ? SCREENS.HOME
     : screen
 
-  const selectCategory = (category) => {
-    setSelectedCategory(category)
-    setScreen(SCREENS.CATEGORY)
+  const setAppScreen = (nextScreen, { replace = false } = {}) => {
+    if (!SCREEN_VALUES.includes(nextScreen)) return
+    if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
+    const nextState = createScreenHistoryState(nextScreen, window.history.state, { replace })
+    window.history[replace ? 'replaceState' : 'pushState'](nextState, '')
+    setScreen(nextScreen)
   }
 
   const navigate = (nextScreen) => {
-    if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
-    setScreen(nextScreen)
+    if (nextScreen === screen) return
+    if (nextScreen === SCREENS.HOME) {
+      const depth = getHistoryDepth(window.history.state)
+      if (depth > 0) window.history.go(-depth)
+      else setAppScreen(SCREENS.HOME, { replace: true })
+      return
+    }
+    setAppScreen(nextScreen)
+  }
+
+  const goBack = () => {
+    if (getHistoryDepth(window.history.state) > 0) window.history.back()
+    else setAppScreen(SCREENS.HOME, { replace: true })
+  }
+
+  const selectCategory = (category) => {
+    setSelectedCategory(category)
+    setAppScreen(SCREENS.CATEGORY)
   }
 
   const openPaywall = (decision) => {
     setPaywallReason(decision)
-    setScreen(SCREENS.PRO)
+    setAppScreen(SCREENS.PRO, { replace: editorOpen })
   }
 
   const requestPro = (feature) => requirePro(feature, { isPro }, openPaywall)
@@ -99,6 +129,23 @@ export default function App() {
     return true
   }
 
+  useEffect(() => {
+    if (!window.history.state?.[APP_SCREEN_STATE_KEY]) {
+      window.history.replaceState(createScreenHistoryState(SCREENS.HOME, null, { replace: true }), '')
+    }
+
+    const handlePopState = (event) => {
+      const nextScreen = getScreenFromHistory(event.state, SCREEN_VALUES, SCREENS.HOME)
+      setScreen(nextScreen)
+      setEditorOpen(false)
+      setEditingItem(null)
+      if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   let content
   if (screen === SCREENS.CATEGORY) {
     content = (
@@ -106,7 +153,7 @@ export default function App() {
         category={selectedCategory}
         items={displayItems}
         isSample={isSample}
-        onBack={() => setScreen(SCREENS.HOME)}
+        onBack={goBack}
         onEditItem={openItemEditor}
         onCompleteItem={completeItem}
         onRestoreItem={restoreItem}
@@ -123,7 +170,7 @@ export default function App() {
         items={displayItems}
         isPro={isPro}
         isSample={isSample}
-        onBack={() => navigate(SCREENS.HOME)}
+        onBack={goBack}
         onRequirePro={() => requestPro(FEATURES.MONEY_REPORT_DETAIL)}
       />
     )
@@ -131,7 +178,7 @@ export default function App() {
     content = (
       <DataManagementScreen
         itemCount={items.length}
-        onBack={() => navigate(SCREENS.HOME)}
+        onBack={goBack}
         onDataChanged={refresh}
       />
     )
@@ -174,16 +221,30 @@ export default function App() {
 
   return (
     <>
-      <AppShell navigation={navigation} fab={fab}>{content}</AppShell>
-      <QuickAddSheet
-        open={editorOpen}
-        initialCategory={selectedCategory}
-        item={editingItem}
-        isPro={isPro}
-        onClose={closeItemEditor}
-        onSave={saveItem}
-        onRequirePro={() => requestPro(FEATURES.RECURRING_SCHEDULES)}
-      />
+      <AppShell navigation={navigation} fab={fab}>
+        <Suspense fallback={<div className="pt-5"><StatePanel title="화면을 준비하고 있어요." loading /></div>}>
+          {content}
+        </Suspense>
+      </AppShell>
+      {editorOpen && (
+        <Suspense fallback={(
+          <div className="sheet-overlay" role="status" aria-live="polite">
+            <section className="bottom-sheet justify-center p-5">
+              <StatePanel title="입력 화면을 준비하고 있어요." loading />
+            </section>
+          </div>
+        )}>
+          <QuickAddSheet
+            open
+            initialCategory={selectedCategory}
+            item={editingItem}
+            isPro={isPro}
+            onClose={closeItemEditor}
+            onSave={saveItem}
+            onRequirePro={() => requestPro(FEATURES.RECURRING_SCHEDULES)}
+          />
+        </Suspense>
+      )}
       <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} />
     </>
   )

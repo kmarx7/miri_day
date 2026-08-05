@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="미리꼭 앱 아이콘">
+  <rect width="192" height="192" rx="44" fill="#171717"/>
+  <circle cx="144" cy="48" r="18" fill="#FDE68A"/>
+  <path d="M52 54h88v18H52zm0 33h66v18H52zm0 33h88v18H52z" fill="#FFFFFF"/>
+</svg>

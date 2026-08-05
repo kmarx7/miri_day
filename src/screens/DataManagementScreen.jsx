@@ -11,6 +11,7 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
   const [message, setMessage] = useState('')
   const [replacePending, setReplacePending] = useState(false)
   const [resetPending, setResetPending] = useState(false)
+  const [reading, setReading] = useState(false)
 
   const handleExport = () => {
     const success = downloadBackup(exportData())
@@ -24,6 +25,7 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
     setReplacePending(false)
     if (!file) return
 
+    setReading(true)
     try {
       const text = await readBackupFile(file)
       const validation = validateBackupData(text)
@@ -38,6 +40,7 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
       setMessage('백업 파일을 읽을 수 없어요.')
     } finally {
       event.target.value = ''
+      setReading(false)
     }
   }
 
@@ -96,8 +99,8 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
       <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-5" aria-labelledby="import-heading">
         <h2 id="import-heading" className="text-base font-bold">JSON에서 가져오기</h2>
         <input ref={inputRef} type="file" accept="application/json,.json" onChange={handleFile} className="sr-only" aria-label="백업 JSON 파일 선택" />
-        <button type="button" onClick={() => inputRef.current?.click()} className="mt-4 min-h-12 w-full rounded-xl border border-gray-300 px-4 text-sm font-bold">
-          {fileName || '백업 파일 선택'}
+        <button type="button" onClick={() => inputRef.current?.click()} disabled={reading} aria-busy={reading} className="mt-4 min-h-12 w-full rounded-xl border border-gray-300 px-4 text-sm font-bold disabled:text-gray-400">
+          {reading ? '백업 파일 확인 중…' : (fileName || '백업 파일 선택')}
         </button>
 
         <fieldset className="mt-4">

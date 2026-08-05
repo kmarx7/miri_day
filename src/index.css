@@ -12,15 +12,21 @@
 }
 
 html {
-  min-width: 320px;
+  min-height: 100%;
   background: #f7f7f8;
+  overflow-x: hidden;
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
   margin: 0;
   background: #f7f7f8;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100dvh;
 }
 
 button,
@@ -29,8 +35,36 @@ textarea {
   font: inherit;
 }
 
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not([role='switch']) {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:where(button, input, textarea, select, a):focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select {
+  scroll-margin-bottom: 6rem;
+}
+
+.text-gray-400 {
+  color: #6b7280;
+}
+
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .app-content {
@@ -48,7 +82,10 @@ textarea {
   transform: translateX(-50%);
   border-top: 1px solid #e5e7eb;
   background: rgba(255, 255, 255, 0.96);
-  padding: 0.25rem 1rem max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding-top: 0.25rem;
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
   backdrop-filter: blur(14px);
 }
 
@@ -189,6 +226,13 @@ textarea {
   border-radius: 1.5rem 1.5rem 0 0;
   background: white;
   animation: sheet-up 180ms ease-out;
+  overscroll-behavior: contain;
+}
+
+.touch-target-switch::before {
+  position: absolute;
+  inset: -8px 0;
+  content: '';
 }
 
 .editor-form {
@@ -245,5 +289,24 @@ textarea {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .bottom-sheet {
+    height: 92%;
+    max-height: 92%;
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+
+  .app-content {
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-contrast: more) {
+  .bottom-navigation {
+    border-top-color: #9ca3af;
+    background: #fff;
   }
 }

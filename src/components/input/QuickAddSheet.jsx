@@ -38,6 +38,8 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
   const [memoExpanded, setMemoExpanded] = useState(false)
   const [viewport, setViewport] = useState(null)
   const onCloseRef = useRef(onClose)
+  const dialogRef = useRef(null)
+  const previousFocusRef = useRef(null)
 
   onCloseRef.current = onClose
 
@@ -73,14 +75,32 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
     if (!open) return undefined
 
     const previousOverflow = document.body.style.overflow
+    previousFocusRef.current = document.activeElement
     document.body.style.overflow = 'hidden'
     window.history.pushState({ ...window.history.state, [HISTORY_KEY]: true }, '')
 
     const handlePopState = () => onCloseRef.current()
     const handleKeyDown = (event) => {
-      if (event.key !== 'Escape') return
-      if (window.history.state?.[HISTORY_KEY]) window.history.back()
-      else onCloseRef.current()
+      if (event.key === 'Escape') {
+        if (window.history.state?.[HISTORY_KEY]) window.history.back()
+        else onCloseRef.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const focusable = [...(dialogRef.current?.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [])]
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -90,6 +110,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       document.body.style.overflow = previousOverflow
       window.removeEventListener('popstate', handlePopState)
       window.removeEventListener('keydown', handleKeyDown)
+      previousFocusRef.current?.focus?.()
     }
   }, [open])
 
@@ -205,7 +226,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       style={viewport ? { height: `${viewport.height}px`, top: `${viewport.top}px` } : undefined}
       onMouseDown={(event) => event.target === event.currentTarget && requestClose()}
     >
-      <section className="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="item-editor-title">
+      <section ref={dialogRef} className="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="item-editor-title">
         <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-gray-300" aria-hidden="true" />
         <div className="flex shrink-0 items-center justify-between gap-4 px-5 pb-3 pt-4">
           <h2 id="item-editor-title" className="text-lg font-bold">{editing ? '항목 수정' : '새로 추가'}</h2>
@@ -277,7 +298,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
                 aria-checked={isLunar}
                 aria-label="음력 입력"
                 onClick={toggleLunar}
-                className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${isLunar ? 'bg-black' : 'bg-gray-300'}`}
+                className={`touch-target-switch relative h-7 w-12 shrink-0 rounded-full transition-colors ${isLunar ? 'bg-black' : 'bg-gray-300'}`}
               >
                 <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${isLunar ? 'translate-x-5' : 'translate-x-1'}`} />
               </button>
