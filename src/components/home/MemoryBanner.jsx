@@ -49,7 +49,7 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen, isPro 
               aria-label={expanded ? '기억할 것 접기' : '기억할 것 펼치기'}
               className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-[#1265CC] bg-white text-xl text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
-              <span className={`transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true">⌄</span>
+              <span className={`transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden="true">›</span>
             </button>
           )}
         </div>
