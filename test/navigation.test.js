@@ -21,6 +21,18 @@ test('화면 교체는 현재 히스토리 깊이를 유지한다', () => {
   assert.equal(getHistoryDepth(next), 2)
 })
 
+test('입력 시트를 페이월로 교체하면 모달 표시를 지우고 뒤로 갈 깊이를 보존한다', () => {
+  const next = createScreenHistoryState('pro', {
+    [APP_HISTORY_DEPTH_KEY]: 0,
+    mirikkokItemEditor: true,
+  }, { replace: true, consumeModal: true })
+
+  assert.equal(next.mirikkokItemEditor, undefined)
+  assert.equal(next[APP_SCREEN_STATE_KEY], 'pro')
+  assert.equal(getHistoryDepth(next), 1)
+  assert.equal(shouldNavigateBack(next), true)
+})
+
 test('알 수 없는 화면 상태는 홈으로 안전하게 복귀한다', () => {
   assert.equal(getScreenFromHistory({ [APP_SCREEN_STATE_KEY]: 'unknown' }, ['home', 'calendar'], 'home'), 'home')
   assert.equal(getHistoryDepth({ [APP_HISTORY_DEPTH_KEY]: -1 }), 0)

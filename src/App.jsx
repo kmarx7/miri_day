@@ -70,10 +70,10 @@ export default function App() {
     ? SCREENS.HOME
     : screen
 
-  const setAppScreen = (nextScreen, { replace = false } = {}) => {
+  const setAppScreen = (nextScreen, { replace = false, consumeModal = false } = {}) => {
     if (!SCREEN_VALUES.includes(nextScreen)) return
     if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
-    const nextState = createScreenHistoryState(nextScreen, window.history.state, { replace })
+    const nextState = createScreenHistoryState(nextScreen, window.history.state, { replace, consumeModal })
     window.history[replace ? 'replaceState' : 'pushState'](nextState, '')
     setScreen(nextScreen)
   }
@@ -101,7 +101,11 @@ export default function App() {
 
   const openPaywall = (decision) => {
     setPaywallReason(decision)
-    setAppScreen(SCREENS.PRO, { replace: editorOpen })
+    if (editorOpen) {
+      setEditorOpen(false)
+      setEditingItem(null)
+    }
+    setAppScreen(SCREENS.PRO, { replace: editorOpen, consumeModal: editorOpen })
   }
 
   const requestPro = (feature) => requirePro(feature, { isPro }, openPaywall)

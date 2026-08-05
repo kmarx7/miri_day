@@ -57,11 +57,6 @@ export default function SwipeableItem({
       horizontal: false,
       offset: 0,
     }
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId)
-    } catch {
-      // Synthetic pointer events and older browsers may not expose pointer capture.
-    }
   }
 
   const handlePointerMove = (event) => {
@@ -77,6 +72,11 @@ export default function SwipeableItem({
         return
       }
       gesture.horizontal = true
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId)
+      } catch {
+        // Synthetic pointer events and older browsers may not expose pointer capture.
+      }
     }
 
     event.preventDefault()

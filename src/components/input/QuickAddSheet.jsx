@@ -199,7 +199,6 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       setRepeatNotice('반복 일정은 Pro에서 사용할 수 있어요. PRO 화면에서 이용권을 확인해 주세요.')
       if (onRequirePro) {
         onRequirePro(FEATURES.RECURRING_SCHEDULES)
-        requestClose()
       }
       return
     }
@@ -213,7 +212,6 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       setNotificationNotice('D-7·D-3·하루 전 사전 알림은 Pro에서 사용할 수 있어요.')
       if (onRequirePro) {
         onRequirePro(FEATURES.ADVANCE_NOTIFICATIONS)
-        requestClose()
       }
       return
     }

@@ -7,12 +7,14 @@ export function getHistoryDepth(state) {
   return Number.isInteger(depth) && depth >= 0 ? depth : 0
 }
 
-export function createScreenHistoryState(screen, currentState, { replace = false } = {}) {
+export function createScreenHistoryState(screen, currentState, { replace = false, consumeModal = false } = {}) {
   const currentDepth = getHistoryDepth(currentState)
+  const baseState = currentState && typeof currentState === 'object' ? { ...currentState } : {}
+  delete baseState[ITEM_EDITOR_HISTORY_KEY]
   return {
-    ...(currentState && typeof currentState === 'object' ? currentState : {}),
+    ...baseState,
     [APP_SCREEN_STATE_KEY]: screen,
-    [APP_HISTORY_DEPTH_KEY]: replace ? currentDepth : currentDepth + 1,
+    [APP_HISTORY_DEPTH_KEY]: currentDepth + (!replace || consumeModal ? 1 : 0),
   }
 }
 
