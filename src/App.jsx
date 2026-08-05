@@ -4,7 +4,7 @@ import BottomNavigation from './components/layout/BottomNavigation.jsx'
 import StatePanel from './components/feedback/StatePanel.jsx'
 import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { resolveProStatus } from './config/runtime.js'
-import { CATEGORIES } from './constants/categories.js'
+import { CATEGORIES, getCategoryActionColor, getCategoryLabel } from './constants/categories.js'
 import { LEGAL_DOCUMENT_TYPES } from './constants/legal.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
@@ -273,12 +273,21 @@ export default function App() {
     <BottomNavigation activeTab={activeTab} onChange={navigate} />
   )
 
-  const fab = screen === SCREENS.HOME ? (
+  const categoryFabVisible = screen === SCREENS.CATEGORY
+  const fabVisible = screen === SCREENS.HOME || categoryFabVisible
+  const fabLabel = categoryFabVisible ? `새 ${getCategoryLabel(selectedCategory)} 추가` : '새 항목 추가'
+  const fabStyle = categoryFabVisible ? {
+    backgroundColor: getCategoryActionColor(selectedCategory),
+    boxShadow: `0 8px 24px ${getCategoryActionColor(selectedCategory)}4D`,
+  } : undefined
+  const fab = fabVisible ? (
     <button
       type="button"
       onClick={openNewItem}
-      aria-label="새 항목 추가"
-      className="app-fab grid h-14 w-14 place-items-center rounded-full bg-black text-3xl font-light text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+      aria-label={fabLabel}
+      title={fabLabel}
+      style={fabStyle}
+      className={`app-fab grid h-14 w-14 place-items-center rounded-full text-3xl font-light text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${categoryFabVisible ? '' : 'bg-black shadow-[0_8px_24px_rgba(0,0,0,0.18)]'}`}
     >
       <span aria-hidden="true">+</span>
     </button>

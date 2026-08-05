@@ -32,6 +32,14 @@ export const CATEGORY_COLORS = Object.freeze({
   [CATEGORIES.MEMORY]: '#E5B840',
 })
 
+export const CATEGORY_ACTION_COLORS = Object.freeze({
+  [CATEGORIES.TODO]: '#2F6FDB',
+  [CATEGORIES.PAYMENT]: '#E95519',
+  [CATEGORIES.SHOPPING]: '#16A36A',
+  [CATEGORIES.THOUGHT]: '#7C3AED',
+  [CATEGORIES.MEMORY]: '#C89300',
+})
+
 export function isCategory(value) {
   return CATEGORY_VALUES.includes(value)
 }
@@ -46,4 +54,8 @@ export function getCompletionLabel(category) {
 
 export function getCategoryColor(category) {
   return CATEGORY_COLORS[category] ?? '#9CA3AF'
+}
+
+export function getCategoryActionColor(category) {
+  return CATEGORY_ACTION_COLORS[category] ?? '#171717'
 }
