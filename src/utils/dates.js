@@ -22,6 +22,25 @@ export function addDays(date, amount) {
   return next
 }
 
+export const DATE_PRESETS = Object.freeze({
+  TODAY: 'today',
+  TOMORROW: 'tomorrow',
+  THIS_WEEK: 'thisWeek',
+  CUSTOM: 'custom',
+})
+
+export function getDatePresetValue(preset, now = new Date()) {
+  if (preset === DATE_PRESETS.TODAY) return formatYmd(now)
+  if (preset === DATE_PRESETS.TOMORROW) return formatYmd(addDays(now, 1))
+  if (preset === DATE_PRESETS.THIS_WEEK) return formatYmd(addDays(now, 6 - now.getDay()))
+  return null
+}
+
+export function inferDatePreset(value, now = new Date()) {
+  const presets = [DATE_PRESETS.TODAY, DATE_PRESETS.TOMORROW, DATE_PRESETS.THIS_WEEK]
+  return presets.find((preset) => getDatePresetValue(preset, now) === value) ?? DATE_PRESETS.CUSTOM
+}
+
 export function daysFromToday(value, now = new Date()) {
   const target = parseLocalDate(value)
   if (!target) return null

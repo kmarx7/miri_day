@@ -20,8 +20,9 @@ const SCREENS = Object.freeze({
 export default function App() {
   const [screen, setScreen] = useState(SCREENS.HOME)
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES.TODO)
-  const [quickAddOpen, setQuickAddOpen] = useState(false)
-  const { items, sampleItems, createItem } = useItems({ sampleItems: SAMPLE_ITEMS })
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const { items, sampleItems, createItem, updateItem } = useItems({ sampleItems: SAMPLE_ITEMS })
 
   const isSample = items.length === 0
   const displayItems = isSample ? sampleItems : items
@@ -36,6 +37,28 @@ export default function App() {
     setScreen(nextScreen)
   }
 
+  const openNewItem = () => {
+    setEditingItem(null)
+    setEditorOpen(true)
+  }
+
+  const openItemEditor = (item) => {
+    setEditingItem(item)
+    setEditorOpen(true)
+  }
+
+  const closeItemEditor = () => {
+    setEditorOpen(false)
+    setEditingItem(null)
+  }
+
+  const saveItem = (values) => {
+    const storedItemExists = editingItem && items.some((item) => item.id === editingItem.id)
+    if (storedItemExists) updateItem(editingItem.id, values)
+    else createItem(values)
+    setSelectedCategory(values.category)
+  }
+
   let content
   if (screen === SCREENS.CATEGORY) {
     content = (
@@ -44,14 +67,22 @@ export default function App() {
         items={displayItems}
         isSample={isSample}
         onBack={() => setScreen(SCREENS.HOME)}
+        onEditItem={openItemEditor}
       />
     )
   } else if (screen === SCREENS.CALENDAR) {
-    content = <CalendarScreen items={displayItems} isSample={isSample} />
+    content = <CalendarScreen items={displayItems} isSample={isSample} onEditItem={openItemEditor} />
   } else if (screen === SCREENS.PRO) {
     content = <ProScreen />
   } else {
-    content = <HomeScreen items={displayItems} isSample={isSample} onSelectCategory={selectCategory} />
+    content = (
+      <HomeScreen
+        items={displayItems}
+        isSample={isSample}
+        onSelectCategory={selectCategory}
+        onEditItem={openItemEditor}
+      />
+    )
   }
 
   const navigation = (
@@ -61,7 +92,7 @@ export default function App() {
   const fab = screen === SCREENS.HOME ? (
     <button
       type="button"
-      onClick={() => setQuickAddOpen(true)}
+      onClick={openNewItem}
       aria-label="새 항목 추가"
       className="app-fab grid h-14 w-14 place-items-center rounded-full bg-black text-3xl font-light text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
@@ -73,10 +104,11 @@ export default function App() {
     <>
       <AppShell navigation={navigation} fab={fab}>{content}</AppShell>
       <QuickAddSheet
-        open={quickAddOpen}
+        open={editorOpen}
         initialCategory={selectedCategory}
-        onClose={() => setQuickAddOpen(false)}
-        onCreate={createItem}
+        item={editingItem}
+        onClose={closeItemEditor}
+        onSave={saveItem}
       />
     </>
   )

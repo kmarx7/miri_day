@@ -5,7 +5,7 @@ import MemoryBanner from '../components/home/MemoryBanner.jsx'
 import TodayHighlights from '../components/home/TodayHighlights.jsx'
 import { formatKoreanToday, formatYmd } from '../utils/dates.js'
 
-export default function HomeScreen({ items, isSample, onSelectCategory }) {
+export default function HomeScreen({ items, isSample, onSelectCategory, onEditItem }) {
   const [memoryExpanded, setMemoryExpanded] = useState(false)
   const [highlightsExpanded, setHighlightsExpanded] = useState(false)
   const today = formatYmd(new Date())
@@ -42,6 +42,7 @@ export default function HomeScreen({ items, isSample, onSelectCategory }) {
           items={highlights}
           expanded={highlightsExpanded}
           onToggle={() => setHighlightsExpanded((value) => !value)}
+          onEdit={onEditItem}
         />
       </div>
     </div>

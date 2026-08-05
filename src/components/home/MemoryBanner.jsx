@@ -41,7 +41,9 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen }) {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">{item.title}</span>
                 <span className="mt-0.5 block text-xs text-[#8A6517]">
-                  {item.isLunar ? `음력 ${item.lunarMonth}.${item.lunarDay}` : formatShortDate(item.dueDate)}
+                  {item.isLunar && item.lunarMonth && item.lunarDay
+                    ? `음력 ${item.lunarMonth}.${item.lunarDay}`
+                    : formatShortDate(item.dueDate)}
                 </span>
               </span>
               <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-xs font-bold text-white">

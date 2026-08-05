@@ -5,7 +5,7 @@ import { formatMonthTitle, formatYmd, getMonthDays } from '../utils/dates.js'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
-export default function CalendarScreen({ items, isSample }) {
+export default function CalendarScreen({ items, isSample, onEditItem }) {
   const [visibleMonth, setVisibleMonth] = useState(() => new Date())
   const today = formatYmd(new Date())
   const monthDays = useMemo(() => getMonthDays(visibleMonth), [visibleMonth])
@@ -54,7 +54,7 @@ export default function CalendarScreen({ items, isSample }) {
 
       <section className="mt-7" aria-labelledby="today-calendar-heading">
         <h2 id="today-calendar-heading" className="mb-3 px-1 text-base font-bold">오늘 일정 {todayItems.length}건</h2>
-        <ItemList items={todayItems} emptyMessage="오늘 등록된 일정이 없어요." />
+        <ItemList items={todayItems} emptyMessage="오늘 등록된 일정이 없어요." onEdit={onEditItem} />
       </section>
     </div>
   )

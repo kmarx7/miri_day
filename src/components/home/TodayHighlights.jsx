@@ -1,7 +1,7 @@
 import { getCategoryLabel } from '../../constants/categories.js'
 import { formatCurrency } from '../../utils/currency.js'
 
-export default function TodayHighlights({ items, expanded, onToggle }) {
+export default function TodayHighlights({ items, expanded, onToggle, onEdit }) {
   const visibleItems = expanded ? items : items.slice(0, 2)
   const amountTotal = items.reduce((sum, item) => sum + (item.amount ?? 0), 0)
 
@@ -21,7 +21,13 @@ export default function TodayHighlights({ items, expanded, onToggle }) {
         ) : (
           <div className="divide-y divide-gray-100">
             {visibleItems.map((item) => (
-              <div key={item.id} className="flex min-h-16 items-center justify-between gap-4 px-4 py-3">
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onEdit(item)}
+                aria-label={`${item.title} 수정`}
+                className="flex min-h-16 w-full items-center justify-between gap-4 px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-black"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{item.title}</p>
                   <p className="mt-1 text-xs text-gray-400">{getCategoryLabel(item.category)}</p>
@@ -29,7 +35,7 @@ export default function TodayHighlights({ items, expanded, onToggle }) {
                 {item.amount !== null && (
                   <span className="shrink-0 text-sm font-semibold">{formatCurrency(item.amount)}</span>
                 )}
-              </div>
+              </button>
             ))}
           </div>
         )}
