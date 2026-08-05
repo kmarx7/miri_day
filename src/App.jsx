@@ -173,8 +173,8 @@ export default function App() {
     }).then((removeListener) => {
       if (active) removeBackButtonListener = removeListener
       else removeListener()
-    }).catch((error) => {
-      console.error('Android 뒤로 가기 처리를 등록하지 못했습니다.', error)
+    }).catch(() => {
+      // 네이티브 브리지 오류가 웹 앱 실행을 막지 않게 합니다.
     })
 
     return () => {
@@ -184,8 +184,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    syncAllItemNotifications(items, { isPro }).catch((error) => {
-      console.error('Android 로컬 알림을 동기화하지 못했습니다.', error)
+    syncAllItemNotifications(items, { isPro }).catch(() => {
+      // 알림 동기화 실패는 다음 앱 실행 또는 아이템 변경 때 다시 시도합니다.
     })
   }, [isPro, items])
 
@@ -244,7 +244,6 @@ export default function App() {
       <ProScreen
         isPro={isPro}
         reason={paywallReason}
-        onEntitlementChange={setIsPro}
       />
     )
   } else {

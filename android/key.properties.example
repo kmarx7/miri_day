@@ -1,0 +1,6 @@
+# 이 파일을 android/key.properties로 복사한 뒤 로컬 값만 입력하세요.
+# 실제 키 저장소와 비밀번호는 Git에 커밋하지 않습니다.
+storeFile=/absolute/path/to/mirikkok-upload-key.jks
+storePassword=CHANGE_ME
+keyAlias=mirikkok-upload
+keyPassword=CHANGE_ME

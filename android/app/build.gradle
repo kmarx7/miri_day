@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+def releaseSigningPropertiesFile = rootProject.file('key.properties')
+def releaseSigningProperties = new Properties()
+
+if (releaseSigningPropertiesFile.exists()) {
+    releaseSigningPropertiesFile.withInputStream { releaseSigningProperties.load(it) }
+    ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].each { propertyName ->
+        if (!releaseSigningProperties.getProperty(propertyName)?.trim()) {
+            throw new GradleException("key.properties에 ${propertyName} 값이 필요합니다.")
+        }
+    }
+}
+
 android {
     namespace = "com.mirikkok.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -8,7 +20,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +28,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (releaseSigningPropertiesFile.exists()) {
+            release {
+                storeFile file(releaseSigningProperties.getProperty('storeFile'))
+                storePassword releaseSigningProperties.getProperty('storePassword')
+                keyAlias releaseSigningProperties.getProperty('keyAlias')
+                keyPassword releaseSigningProperties.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseSigningPropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

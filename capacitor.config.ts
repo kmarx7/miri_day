@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   appName: '미리꼭',
   webDir: 'dist',
   backgroundColor: '#F7F7F8',
-  loggingBehavior: 'debug',
+  loggingBehavior: 'none',
   android: {
     backgroundColor: '#F7F7F8',
     allowMixedContent: false,

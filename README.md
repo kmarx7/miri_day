@@ -2,7 +2,7 @@
 
 개인 일정, 할 일, 지출, 기념일을 한곳에서 관리하는 Vite + React + Tailwind 앱입니다.
 
-현재 저장소는 편집 가능한 React 앱과 Capacitor Android 프로젝트를 포함합니다. Android 결제와 알림은 아직 연결하지 않았습니다.
+현재 저장소는 편집 가능한 React 앱과 Capacitor Android 프로젝트를 포함합니다. Android 로컬 알림은 연결되어 있으며 Google Play Billing은 아직 연결 전입니다.
 
 ## 개발 환경
 
@@ -47,13 +47,66 @@ npm run android:run
 
 Android Studio가 기본 경로에 없다면 `CAPACITOR_ANDROID_STUDIO_PATH`에 실행 파일 경로를 지정합니다. 로컬 JDK와 SDK 경로는 Android Studio 또는 셸 환경에서 설정하며 저장소에 커밋하지 않습니다.
 
-Google Play용 릴리스 AAB 기반 파일은 다음 명령으로 만듭니다.
+## Google Play 릴리스 서명과 AAB
+
+신규 Play 앱은 [Play App Signing](https://developer.android.com/studio/publish/app-signing)을 사용합니다. 업로드 키는 저장소 밖의 안전한 위치에서 다음과 같이 한 번만 생성합니다.
+
+```bash
+keytool -genkeypair -v \
+  -keystore /안전한/절대경로/mirikkok-upload-key.jks \
+  -alias mirikkok-upload \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+```
+
+`android/key.properties.example`을 `android/key.properties`로 복사하고 실제 경로와 비밀번호를 로컬에서 입력합니다. `key.properties`, `*.jks`, `*.keystore`는 Git에서 제외되며 실제 값은 문서나 이슈에도 기록하지 않습니다.
+
+```bash
+cp android/key.properties.example android/key.properties
+```
+
+서명 설정 후 Google Play용 릴리스 AAB를 만듭니다.
 
 ```bash
 npm run android:bundle
 ```
 
-결과는 `android/app/build/outputs/bundle/release/app-release.aab`에 생성됩니다. Play 배포 전에는 별도의 업로드 키와 릴리스 서명 설정이 필요합니다.
+결과는 `android/app/build/outputs/bundle/release/app-release.aab`에 생성됩니다. `android/key.properties`가 없으면 로컬 검증용 미서명 AAB만 생성되므로 Play Console에는 업로드하지 않습니다. 각 새 업로드 전에는 `android/app/build.gradle`의 `versionCode`를 반드시 증가시킵니다.
+
+현재 Android 릴리스 값은 다음과 같습니다.
+
+- package name: `com.mirikkok.app`
+- versionName: `1.0.0`
+- versionCode: `1`
+- minSdk: 24
+- compileSdk / targetSdk: 36
+- R8 코드 축소 및 리소스 축소: release 빌드에서 활성화
+
+## Google Play 내부 테스트 트랙
+
+1. Play Console에서 앱을 생성하고 package name을 `com.mirikkok.app`으로 확인합니다.
+2. 앱 액세스, 광고 여부, 콘텐츠 등급, 대상 연령, 데이터 보안, 스토어 등록정보와 공개 개인정보처리방침 URL을 작성합니다.
+3. Play App Signing에 등록하고 로컬 업로드 키로 서명한 `app-release.aab`를 준비합니다.
+4. `테스트 및 출시 > 테스트 > 내부 테스트`에서 새 릴리스를 만들고 AAB를 업로드합니다.
+5. 출시 노트를 입력하고 오류·경고를 검토한 뒤 내부 테스트 릴리스를 시작합니다.
+6. 이메일 목록 또는 Google 그룹으로 테스터를 추가하고 참여 링크를 전달합니다. 내부 테스트는 앱당 최대 100명을 지원합니다.
+7. Play 스토어에서 설치해 앱 실행, 업데이트, 오프라인 실행, 로컬 알림과 결제·복원을 테스트합니다.
+
+Google Play의 [내부 테스트 안내](https://support.google.com/googleplay/android-developer/answer/9845334)와 [AAB 업로드 안내](https://developer.android.com/studio/publish/upload-bundle)를 기준으로 진행합니다. 신규 개인 개발자 계정은 프로덕션 공개 전에 별도의 비공개 테스트 요건이 적용될 수 있습니다.
+
+## Google Play Pro 상품
+
+Play Console의 `수익 창출 > 제품 > 일회성 제품`에서 다음 상품을 생성합니다.
+
+- 상품 ID: `mirikkok_pro_lifetime`
+- 상품명: `미리꼭 Pro 평생 이용권`
+- 유형: 일회성 제품의 `구매(Buy)` 옵션
+- 정가: 9,900원
+- 출시 기념 한정 할인가: 5,900원
+- 수량: 1개, 비소모성 평생 권한
+
+상품과 구매 옵션을 활성화한 뒤 라이선스 테스터 계정으로 승인·거절·보류·복원 흐름을 확인해야 합니다. 현재 앱의 `purchaseService`는 `NOT_CONFIGURED` 상태이므로 실제 결제 및 구매 복원 테스트는 Google Play Billing 어댑터 구현 전에는 통과할 수 없습니다.
 
 ## Android 로컬 알림
 
@@ -107,5 +160,4 @@ android/                            Android Studio 프로젝트
 - 기능 단위 브랜치와 커밋을 사용합니다.
 - 각 단계가 끝날 때 `npm run build`를 실행합니다.
 - Android Pro 상품은 Google Play Billing의 일회성 비소모성 평생 이용권으로 구현합니다.
-- 실제 결제 연결 전에는 개발 모드의 명시적인 목업 버튼으로만 Pro 권한을 테스트합니다.
 - Pretendard를 불러오지 못하면 시스템 `sans-serif` 폰트로 표시됩니다.

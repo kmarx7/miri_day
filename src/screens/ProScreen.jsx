@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
 import { PRO_PRICING } from '../constants/pricing.js'
-import { mockPurchaseService } from '../services/mockPurchaseService.js'
 import { purchaseService, restorePurchases } from '../services/purchaseService.js'
 
 const PRO_BENEFITS = [
@@ -18,7 +17,7 @@ const PRO_BENEFITS = [
 
 const formatPrice = (price) => `${new Intl.NumberFormat('ko-KR').format(price)}원`
 
-export default function ProScreen({ isPro = false, reason, onEntitlementChange }) {
+export default function ProScreen({ isPro = false, reason }) {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -27,14 +26,6 @@ export default function ProScreen({ isPro = false, reason, onEntitlementChange }
     const result = await restorePurchases(purchaseService)
     setMessage(result.message ?? (result.success ? '구매 내역을 복원했어요.' : '복원할 구매 내역이 없어요.'))
     setBusy(false)
-  }
-
-  const setDevelopmentEntitlement = (enabled) => {
-    const next = enabled
-      ? mockPurchaseService.activateForDevelopment()
-      : mockPurchaseService.resetForDevelopment()
-    onEntitlementChange?.(next)
-    setMessage(enabled ? '개발 모드에서 Pro를 활성화했어요.' : '개발 모드에서 Free로 전환했어요.')
   }
 
   return (
@@ -91,21 +82,6 @@ export default function ProScreen({ isPro = false, reason, onEntitlementChange }
         {busy ? '구매 내역 확인 중…' : '구매 내역 복원'}
       </button>
       <p className="mt-3 text-center text-xs leading-relaxed text-gray-400">실제 구매와 복원은 Android의 Google Play Billing 연결 후 제공됩니다.</p>
-
-      {import.meta.env.DEV && (
-        <section className="mt-6 rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-4" aria-labelledby="development-controls-title">
-          <h2 id="development-controls-title" className="text-sm font-bold text-amber-900">개발 모드 전용</h2>
-          <p className="mt-1 text-xs leading-relaxed text-amber-700">실제 구매가 아닌 권한 화면 테스트용 제어입니다.</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => setDevelopmentEntitlement(true)} className="min-h-11 rounded-xl bg-black px-3 text-sm font-bold text-white">
-              개발용 Pro 활성화
-            </button>
-            <button type="button" onClick={() => setDevelopmentEntitlement(false)} className="min-h-11 rounded-xl border border-amber-300 bg-white px-3 text-sm font-bold text-amber-900">
-              개발용 Free 전환
-            </button>
-          </div>
-        </section>
-      )}
 
       {message && <p className="mt-4 text-center text-sm font-medium text-gray-600" role="status">{message}</p>}
     </div>
