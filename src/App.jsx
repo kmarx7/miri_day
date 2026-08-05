@@ -6,6 +6,7 @@ import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { CATEGORIES } from './constants/categories.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
+import { getProStatus } from './services/storageService.js'
 import CalendarScreen from './screens/CalendarScreen.jsx'
 import CategoryListScreen from './screens/CategoryListScreen.jsx'
 import HomeScreen from './screens/HomeScreen.jsx'
@@ -24,6 +25,7 @@ export default function App() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
+  const [isPro] = useState(() => getProStatus())
   const {
     items,
     sampleItems,
@@ -96,6 +98,7 @@ export default function App() {
       <HomeScreen
         items={displayItems}
         isSample={isSample}
+        isPro={isPro}
         onSelectCategory={selectCategory}
         onEditItem={openItemEditor}
       />
@@ -124,6 +127,7 @@ export default function App() {
         open={editorOpen}
         initialCategory={selectedCategory}
         item={editingItem}
+        isPro={isPro}
         onClose={closeItemEditor}
         onSave={saveItem}
       />

@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, CATEGORY_VALUES, getCategoryLabel } from '../../constants/categories.js'
+import { REPEAT_TYPES } from '../../models/item.js'
 import { formatCurrencyInput, parseCurrencyInput } from '../../utils/currency.js'
-import { DATE_PRESETS, formatYmd, getDatePresetValue, inferDatePreset } from '../../utils/dates.js'
+import { DATE_PRESETS, formatKoreanYmd, formatYmd, getDatePresetValue, inferDatePreset } from '../../utils/dates.js'
+import { convertLunarToSolar, solarToLunar } from '../../utils/lunar.js'
 
 const DATE_PRESET_OPTIONS = [
   { value: DATE_PRESETS.TODAY, label: '오늘' },
@@ -12,13 +14,18 @@ const DATE_PRESET_OPTIONS = [
 
 const HISTORY_KEY = 'mirikkokItemEditor'
 
-export default function QuickAddSheet({ open, initialCategory, item, onClose, onSave }) {
+export default function QuickAddSheet({ open, initialCategory, item, isPro = false, onClose, onSave }) {
   const [category, setCategory] = useState(initialCategory ?? CATEGORIES.TODO)
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [datePreset, setDatePreset] = useState(DATE_PRESETS.TODAY)
   const [isLunar, setIsLunar] = useState(false)
+  const [lunarYear, setLunarYear] = useState('')
+  const [lunarMonth, setLunarMonth] = useState('')
+  const [lunarDay, setLunarDay] = useState('')
+  const [isLeapMonth, setIsLeapMonth] = useState(false)
+  const [repeatType, setRepeatType] = useState(REPEAT_TYPES.NONE)
   const [memo, setMemo] = useState('')
   const [memoExpanded, setMemoExpanded] = useState(false)
   const [viewport, setViewport] = useState(null)
@@ -30,12 +37,25 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
     if (!open) return
 
     const initialDueDate = item?.dueDate ?? formatYmd(new Date())
+    const initialLunar = item?.isLunar
+      ? {
+          year: item.lunarYear,
+          month: item.lunarMonth,
+          day: item.lunarDay,
+          isLeapMonth: item.isLeapMonth,
+        }
+      : solarToLunar(initialDueDate)
     setCategory(item?.category ?? initialCategory ?? CATEGORIES.TODO)
     setTitle(item?.title ?? '')
     setAmount(item?.amount === null || item?.amount === undefined ? '' : formatCurrencyInput(item.amount))
     setDueDate(initialDueDate)
     setDatePreset(inferDatePreset(initialDueDate))
     setIsLunar(item?.isLunar === true)
+    setLunarYear(initialLunar?.year ? String(initialLunar.year) : '')
+    setLunarMonth(initialLunar?.month ? String(initialLunar.month) : '')
+    setLunarDay(initialLunar?.day ? String(initialLunar.day) : '')
+    setIsLeapMonth(initialLunar?.isLeapMonth === true)
+    setRepeatType(item?.repeatType ?? REPEAT_TYPES.NONE)
     setMemo(item?.memo ?? '')
     setMemoExpanded(Boolean(item?.memo))
   }, [initialCategory, item, open])
@@ -63,6 +83,13 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [open])
+
+  const lunarConversion = useMemo(() => convertLunarToSolar({
+    year: lunarYear,
+    month: lunarMonth,
+    day: lunarDay,
+    isLeapMonth,
+  }), [isLeapMonth, lunarDay, lunarMonth, lunarYear])
 
   useEffect(() => {
     if (!open) return undefined
@@ -107,16 +134,34 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
     setAmount(formatCurrencyInput(event.target.value))
   }
 
+  const toggleLunar = () => {
+    if (!isLunar) {
+      const converted = solarToLunar(dueDate)
+      if (converted) {
+        setLunarYear(String(converted.year))
+        setLunarMonth(String(converted.month))
+        setLunarDay(String(converted.day))
+        setIsLeapMonth(converted.isLeapMonth)
+      }
+    }
+    setIsLunar((value) => !value)
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault()
-    if (!title.trim()) return
+    if (!title.trim() || (isLunar && !lunarConversion.valid)) return
 
     onSave({
       category,
       title: title.trim(),
       amount: showAmount ? parseCurrencyInput(amount) : null,
-      dueDate: dueDate || null,
+      dueDate: isLunar ? lunarConversion.solarDate : (dueDate || null),
       isLunar,
+      lunarYear: isLunar ? Number(lunarYear) : null,
+      lunarMonth: isLunar ? Number(lunarMonth) : null,
+      lunarDay: isLunar ? Number(lunarDay) : null,
+      isLeapMonth: isLunar && isLeapMonth,
+      repeatType: category === CATEGORIES.MEMORY ? repeatType : REPEAT_TYPES.NONE,
       memo,
     })
     requestClose()
@@ -190,34 +235,6 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
               </label>
             )}
 
-            <fieldset className="mt-5">
-              <legend className="text-sm font-semibold">날짜</legend>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {DATE_PRESET_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => selectDatePreset(option.value)}
-                    aria-pressed={datePreset === option.value}
-                    className={`min-h-10 rounded-xl border px-3 text-sm font-semibold ${
-                      datePreset === option.value ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              {datePreset === DATE_PRESETS.CUSTOM && (
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  aria-label="직접 선택 날짜"
-                  className="mt-3 min-h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-base outline-none focus:border-black"
-                />
-              )}
-            </fieldset>
-
             <div className="mt-5 flex min-h-14 items-center justify-between rounded-xl bg-gray-50 px-4">
               <div>
                 <p className="text-sm font-semibold">음력으로 입력</p>
@@ -228,12 +245,140 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
                 role="switch"
                 aria-checked={isLunar}
                 aria-label="음력 입력"
-                onClick={() => setIsLunar((value) => !value)}
+                onClick={toggleLunar}
                 className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${isLunar ? 'bg-black' : 'bg-gray-300'}`}
               >
                 <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${isLunar ? 'translate-x-5' : 'translate-x-1'}`} />
               </button>
             </div>
+
+            <fieldset className="mt-5">
+              <legend className="text-sm font-semibold">{isLunar ? '음력 날짜' : '날짜'}</legend>
+              {!isLunar ? (
+                <>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {DATE_PRESET_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => selectDatePreset(option.value)}
+                        aria-pressed={datePreset === option.value}
+                        className={`min-h-10 rounded-xl border px-3 text-sm font-semibold ${
+                          datePreset === option.value ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  {datePreset === DATE_PRESETS.CUSTOM && (
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={(event) => setDueDate(event.target.value)}
+                      aria-label="직접 선택 날짜"
+                      className="mt-3 min-h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-base outline-none focus:border-black"
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="mt-2 space-y-3">
+                  <div className="grid grid-cols-[1.35fr_1fr_1fr] gap-2">
+                    <label>
+                      <span className="sr-only">음력 연도</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        value={lunarYear}
+                        onChange={(event) => setLunarYear(event.target.value)}
+                        aria-label="음력 연도"
+                        placeholder="연도"
+                        className="min-h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-base outline-none focus:border-black"
+                      />
+                    </label>
+                    <label>
+                      <span className="sr-only">음력 월</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        max="12"
+                        value={lunarMonth}
+                        onChange={(event) => setLunarMonth(event.target.value)}
+                        aria-label="음력 월"
+                        placeholder="월"
+                        className="min-h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-base outline-none focus:border-black"
+                      />
+                    </label>
+                    <label>
+                      <span className="sr-only">음력 일</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        max="30"
+                        value={lunarDay}
+                        onChange={(event) => setLunarDay(event.target.value)}
+                        aria-label="음력 일"
+                        placeholder="일"
+                        className="min-h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-base outline-none focus:border-black"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="flex min-h-11 items-center gap-3 rounded-xl border border-gray-200 px-3 text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={isLeapMonth}
+                      onChange={(event) => setIsLeapMonth(event.target.checked)}
+                      className="h-5 w-5 rounded border-gray-300 accent-black"
+                    />
+                    윤달로 입력
+                  </label>
+
+                  {lunarConversion.valid ? (
+                    <div className="rounded-xl border border-[#F3E5A6] bg-[#FFFEF5] px-4 py-3" role="status">
+                      <p className="text-sm font-semibold leading-relaxed text-[#6E5318]">
+                        음력 {isLeapMonth ? '윤' : ''}{Number(lunarMonth)}월 {Number(lunarDay)}일 → 양력 {formatKoreanYmd(lunarConversion.solarDate)}로 저장돼요
+                      </p>
+                      {!isPro && (
+                        <span className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-bold text-[#8A6517]">
+                          Pro에서 매년 자동 변환
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700" role="alert">
+                      {lunarConversion.error}
+                    </p>
+                  )}
+                </div>
+              )}
+            </fieldset>
+
+            {category === CATEGORIES.MEMORY && (
+              <div className="mt-4 flex min-h-14 items-center justify-between rounded-xl border border-gray-200 bg-white px-4">
+                <div>
+                  <p className="text-sm font-semibold">매년 반복</p>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {isLunar && !isPro ? '저장 후 Pro에서 자동 재계산할 수 있어요.' : '다가오는 기념일을 매년 계산해요.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={repeatType === REPEAT_TYPES.YEARLY}
+                  aria-label="매년 반복"
+                  onClick={() => setRepeatType((value) => (
+                    value === REPEAT_TYPES.YEARLY ? REPEAT_TYPES.NONE : REPEAT_TYPES.YEARLY
+                  ))}
+                  className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${repeatType === REPEAT_TYPES.YEARLY ? 'bg-black' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${repeatType === REPEAT_TYPES.YEARLY ? 'translate-x-5' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            )}
 
             <div className="mt-4 rounded-xl border border-gray-200 bg-white">
               <button
@@ -261,7 +406,7 @@ export default function QuickAddSheet({ open, initialCategory, item, onClose, on
           <div className="editor-footer">
             <button
               type="submit"
-              disabled={!title.trim()}
+              disabled={!title.trim() || (isLunar && !lunarConversion.valid)}
               className="min-h-12 w-full rounded-xl bg-black px-4 text-base font-bold text-white disabled:bg-gray-200 disabled:text-gray-400"
             >
               {editing ? '수정 완료' : '저장하기'}

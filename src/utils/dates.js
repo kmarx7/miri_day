@@ -1,25 +1,55 @@
 const DAY_MS = 24 * 60 * 60 * 1000
+export const SEOUL_TIME_ZONE = 'Asia/Seoul'
 
-export function formatYmd(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+const seoulDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: SEOUL_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
 
-export function parseLocalDate(value) {
+export function parseYmdParts(value) {
   if (typeof value !== 'string') return null
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return null
 
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
-  return Number.isNaN(date.getTime()) ? null : date
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  const check = new Date(Date.UTC(year, month - 1, day))
+  if (check.getUTCFullYear() !== year || check.getUTCMonth() + 1 !== month || check.getUTCDate() !== day) return null
+  return { year, month, day }
+}
+
+export function formatYmd(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return ''
+  const parts = Object.fromEntries(
+    seoulDateFormatter.formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  )
+  return `${parts.year}-${parts.month}-${parts.day}`
+}
+
+export function parseLocalDate(value) {
+  const parts = parseYmdParts(value)
+  return parts ? new Date(parts.year, parts.month - 1, parts.day) : null
 }
 
 export function addDays(date, amount) {
   const next = new Date(date)
   next.setDate(next.getDate() + amount)
   return next
+}
+
+export function addDaysToYmd(value, amount) {
+  const parts = parseYmdParts(value)
+  if (!parts || !Number.isInteger(amount)) return null
+
+  const next = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + amount))
+  return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-${String(next.getUTCDate()).padStart(2, '0')}`
 }
 
 export const DATE_PRESETS = Object.freeze({
@@ -30,9 +60,16 @@ export const DATE_PRESETS = Object.freeze({
 })
 
 export function getDatePresetValue(preset, now = new Date()) {
-  if (preset === DATE_PRESETS.TODAY) return formatYmd(now)
-  if (preset === DATE_PRESETS.TOMORROW) return formatYmd(addDays(now, 1))
-  if (preset === DATE_PRESETS.THIS_WEEK) return formatYmd(addDays(now, 6 - now.getDay()))
+  const today = formatYmd(now)
+  const todayParts = parseYmdParts(today)
+  if (!todayParts) return null
+
+  if (preset === DATE_PRESETS.TODAY) return today
+  if (preset === DATE_PRESETS.TOMORROW) return addDaysToYmd(today, 1)
+  if (preset === DATE_PRESETS.THIS_WEEK) {
+    const weekday = new Date(Date.UTC(todayParts.year, todayParts.month - 1, todayParts.day)).getUTCDay()
+    return addDaysToYmd(today, 6 - weekday)
+  }
   return null
 }
 
@@ -42,11 +79,13 @@ export function inferDatePreset(value, now = new Date()) {
 }
 
 export function daysFromToday(value, now = new Date()) {
-  const target = parseLocalDate(value)
-  if (!target) return null
+  const target = parseYmdParts(value)
+  const today = parseYmdParts(formatYmd(now))
+  if (!target || !today) return null
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return Math.round((target.getTime() - today.getTime()) / DAY_MS)
+  const targetDay = Date.UTC(target.year, target.month - 1, target.day)
+  const todayDay = Date.UTC(today.year, today.month - 1, today.day)
+  return Math.round((targetDay - todayDay) / DAY_MS)
 }
 
 export function formatDDay(value, now = new Date()) {
@@ -58,6 +97,7 @@ export function formatDDay(value, now = new Date()) {
 
 export function formatKoreanToday(date = new Date()) {
   return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: SEOUL_TIME_ZONE,
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -73,9 +113,15 @@ export function formatMonthTitle(date) {
 }
 
 export function formatShortDate(value) {
-  const date = parseLocalDate(value)
-  if (!date) return '날짜 없음'
-  return new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(date)
+  const parts = parseYmdParts(value)
+  if (!parts) return '날짜 없음'
+  return `${parts.month}월 ${parts.day}일`
+}
+
+export function formatKoreanYmd(value) {
+  const parts = parseYmdParts(value)
+  if (!parts) return ''
+  return `${parts.year}년 ${parts.month}월 ${parts.day}일`
 }
 
 export function getMonthDays(date) {

@@ -1,9 +1,11 @@
 import { formatDDay, formatShortDate } from '../../utils/dates.js'
+import { getMemoryOccurrence } from '../../utils/lunar.js'
 
-export default function MemoryBanner({ items, expanded, onToggle, onOpen }) {
+export default function MemoryBanner({ items, expanded, onToggle, onOpen, isPro = false }) {
   const upcoming = [...items]
-    .filter((item) => item.dueDate)
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+    .map((item) => ({ item, occurrence: getMemoryOccurrence(item, { isPro }) }))
+    .filter(({ occurrence }) => occurrence.date)
+    .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date))
     .slice(0, 5)
   const visibleItems = expanded ? upcoming : upcoming.slice(0, 1)
 
@@ -31,7 +33,7 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen }) {
 
       {visibleItems.length > 0 && (
         <div className="mt-3 divide-y divide-[#F3E5A6] border-t border-[#F3E5A6]">
-          {visibleItems.map((item) => (
+          {visibleItems.map(({ item, occurrence }) => (
             <button
               key={item.id}
               type="button"
@@ -47,7 +49,7 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen }) {
                 </span>
               </span>
               <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-xs font-bold text-white">
-                {formatDDay(item.dueDate)}
+                {formatDDay(occurrence.date)}
               </span>
             </button>
           ))}
