@@ -1,4 +1,5 @@
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
+import { PRO_PRICING } from '../constants/pricing.js'
 
 const PRO_BENEFITS = [
   '모든 테마와 앱 아이콘',
@@ -10,6 +11,8 @@ const PRO_BENEFITS = [
   '평생 업데이트',
 ]
 
+const formatPrice = (price) => `${new Intl.NumberFormat('ko-KR').format(price)}원`
+
 export default function ProScreen() {
   return (
     <div className="pt-5">
@@ -20,10 +23,10 @@ export default function ProScreen() {
       />
 
       <section className="rounded-3xl bg-black p-6 text-white">
-        <p className="inline-flex rounded-full bg-[#FDE68A] px-3 py-1 text-xs font-bold text-[#5C4300]">출시 기념 한정 할인</p>
-        <p className="mt-6 text-sm text-white/60 line-through">정가 9,900원</p>
-        <p className="mt-1 text-3xl font-extrabold tracking-tight">한정 할인가 5,900원</p>
-        <p className="mt-2 text-sm font-bold text-[#FDE68A]">40% 할인</p>
+        <p className="inline-flex rounded-full bg-[#FDE68A] px-3 py-1 text-xs font-bold text-[#5C4300]">{PRO_PRICING.promotionLabel}</p>
+        <p className="mt-6 text-sm text-white/60 line-through">정가 {formatPrice(PRO_PRICING.regularPrice)}</p>
+        <p className="mt-1 text-3xl font-extrabold tracking-tight">한정 할인가 {formatPrice(PRO_PRICING.launchPrice)}</p>
+        <p className="mt-2 text-sm font-bold text-[#FDE68A]">{PRO_PRICING.discountPercent}% 할인</p>
       </section>
 
       <section className="mt-6" aria-labelledby="pro-benefits-heading">
@@ -43,7 +46,7 @@ export default function ProScreen() {
         disabled
         className="mt-6 min-h-14 w-full rounded-2xl bg-gray-200 px-4 text-sm font-bold text-gray-500"
       >
-        한정 할인가 5,900원으로 시작하기
+        한정 할인가 {formatPrice(PRO_PRICING.launchPrice)}으로 시작하기
       </button>
       <p className="mt-3 text-center text-xs leading-relaxed text-gray-400">결제는 Android 앱의 Google Play Billing 단계에서 연결합니다.</p>
     </div>
