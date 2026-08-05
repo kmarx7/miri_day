@@ -59,6 +59,111 @@ textarea {
   bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
+.swipe-item {
+  position: relative;
+  min-height: 4rem;
+  overflow: hidden;
+  border-bottom: 1px solid #f3f4f6;
+  touch-action: pan-y;
+}
+
+.swipe-item:last-child {
+  border-bottom: 0;
+}
+
+.swipe-action {
+  position: absolute;
+  inset-block: 0;
+  display: flex;
+  width: 50%;
+  align-items: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.swipe-action-complete {
+  left: 0;
+  justify-content: flex-start;
+  background: #22c55e;
+  padding-left: 1.25rem;
+}
+
+.swipe-action-delete {
+  right: 0;
+  justify-content: flex-end;
+  background: #ef4444;
+  padding-right: 1.25rem;
+}
+
+.swipe-item-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 4rem;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  padding: 0 0.5rem 0 1rem;
+  transition: transform 160ms ease-out;
+}
+
+.swipe-item-completed {
+  opacity: 0.5;
+}
+
+.item-action-menu {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid #e5e7eb;
+  background: white;
+  box-shadow: -6px 0 16px rgba(0, 0, 0, 0.08);
+}
+
+.item-action-menu button {
+  display: grid;
+  min-height: 2.75rem;
+  min-width: 4.25rem;
+  place-items: center;
+  padding: 0.625rem 0.875rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.item-action-menu button:hover,
+.item-action-menu button:focus-visible {
+  background: #f3f4f6;
+  outline: none;
+}
+
+.swipe-hint .swipe-item-content {
+  animation: swipe-hint 900ms ease-in-out 250ms 1;
+}
+
+.undo-snackbar {
+  position: fixed;
+  z-index: 45;
+  right: max(1rem, calc((100vw - 520px) / 2 + 1rem));
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  left: max(1rem, calc((100vw - 520px) / 2 + 1rem));
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  background: #171717;
+  padding: 0.375rem 0.5rem 0.375rem 1rem;
+  color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  animation: snackbar-up 160ms ease-out;
+}
+
 .sheet-overlay {
   position: fixed;
   z-index: 50;
@@ -119,6 +224,17 @@ textarea {
 @keyframes sheet-up {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes swipe-hint {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(18px); }
+  65% { transform: translateX(-18px); }
+}
+
+@keyframes snackbar-up {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,13 +1,32 @@
-import { getCategoryLabel } from '../constants/categories.js'
+import { useEffect, useState } from 'react'
+import { getCategoryLabel, getCompletionLabel } from '../constants/categories.js'
 import ItemList from '../components/items/ItemList.jsx'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
 import { formatCurrency } from '../utils/currency.js'
 
-export default function CategoryListScreen({ category, items, isSample, onBack, onEditItem }) {
+export default function CategoryListScreen({
+  category,
+  items,
+  isSample,
+  onBack,
+  onEditItem,
+  onCompleteItem,
+  onRestoreItem,
+  onDeleteItem,
+  showSwipeHint,
+  onSwipeHintShown,
+}) {
+  const [completedExpanded, setCompletedExpanded] = useState(true)
+  const [displaySwipeHint] = useState(showSwipeHint)
   const categoryItems = items.filter((item) => item.category === category)
   const activeItems = categoryItems.filter((item) => !item.completed)
   const completedItems = categoryItems.filter((item) => item.completed)
   const amountTotal = activeItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
+  const completionLabel = getCompletionLabel(category)
+
+  useEffect(() => {
+    if (!isSample && displaySwipeHint && activeItems.length > 0) onSwipeHintShown?.()
+  }, [activeItems.length, displaySwipeHint, isSample, onSwipeHintShown])
 
   return (
     <div className="pt-5">
@@ -20,13 +39,41 @@ export default function CategoryListScreen({ category, items, isSample, onBack, 
 
       <section aria-labelledby="active-items-heading">
         <h2 id="active-items-heading" className="mb-3 px-1 text-sm font-bold">진행 중 {activeItems.length}</h2>
-        <ItemList items={activeItems} emptyMessage="진행 중인 항목이 없어요." onEdit={onEditItem} />
+        <ItemList
+          items={activeItems}
+          emptyMessage="진행 중인 항목이 없어요."
+          onEdit={onEditItem}
+          onComplete={isSample ? undefined : onCompleteItem}
+          onDelete={isSample ? undefined : onDeleteItem}
+          completionLabel={completionLabel}
+          showSwipeHint={!isSample && displaySwipeHint}
+        />
       </section>
 
       {completedItems.length > 0 && (
         <section className="mt-8" aria-labelledby="completed-items-heading">
-          <h2 id="completed-items-heading" className="mb-3 px-1 text-sm font-bold text-gray-400">완료 {completedItems.length}</h2>
-          <ItemList items={completedItems} emptyMessage="완료한 항목이 없어요." onEdit={onEditItem} />
+          <button
+            type="button"
+            onClick={() => setCompletedExpanded((expanded) => !expanded)}
+            aria-expanded={completedExpanded}
+            aria-controls="completed-items-list"
+            className="mb-3 flex min-h-11 w-full items-center justify-between rounded-xl px-1 text-left text-sm font-bold text-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+          >
+            <span id="completed-items-heading">완료 {completedItems.length}</span>
+            <span aria-hidden="true" className={`text-lg transition-transform ${completedExpanded ? 'rotate-180' : ''}`}>⌄</span>
+          </button>
+          {completedExpanded && (
+            <div id="completed-items-list">
+              <ItemList
+                items={completedItems}
+                emptyMessage="완료한 항목이 없어요."
+                onEdit={onEditItem}
+                onRestore={isSample ? undefined : onRestoreItem}
+                onDelete={isSample ? undefined : onDeleteItem}
+                completionLabel={completionLabel}
+              />
+            </div>
+          )}
         </section>
       )}
     </div>

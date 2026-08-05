@@ -2,6 +2,7 @@ import { useState } from 'react'
 import AppShell from './components/layout/AppShell.jsx'
 import BottomNavigation from './components/layout/BottomNavigation.jsx'
 import QuickAddSheet from './components/input/QuickAddSheet.jsx'
+import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { CATEGORIES } from './constants/categories.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
@@ -22,7 +23,18 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES.TODO)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
-  const { items, sampleItems, createItem, updateItem } = useItems({ sampleItems: SAMPLE_ITEMS })
+  const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
+  const {
+    items,
+    sampleItems,
+    pendingDeletion,
+    createItem,
+    updateItem,
+    deleteItem,
+    completeItem,
+    restoreItem,
+    undoDelete,
+  } = useItems({ sampleItems: SAMPLE_ITEMS })
 
   const isSample = items.length === 0
   const displayItems = isSample ? sampleItems : items
@@ -68,6 +80,11 @@ export default function App() {
         isSample={isSample}
         onBack={() => setScreen(SCREENS.HOME)}
         onEditItem={openItemEditor}
+        onCompleteItem={completeItem}
+        onRestoreItem={restoreItem}
+        onDeleteItem={deleteItem}
+        showSwipeHint={swipeHintAvailable}
+        onSwipeHintShown={() => setSwipeHintAvailable(false)}
       />
     )
   } else if (screen === SCREENS.CALENDAR) {
@@ -110,6 +127,7 @@ export default function App() {
         onClose={closeItemEditor}
         onSave={saveItem}
       />
+      <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} />
     </>
   )
 }
