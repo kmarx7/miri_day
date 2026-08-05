@@ -55,6 +55,7 @@ export default function App() {
   const {
     items,
     sampleItems,
+    sampleDataDismissed,
     pendingDeletion,
     createItem,
     updateItem,
@@ -62,10 +63,12 @@ export default function App() {
     completeItem,
     restoreItem,
     undoDelete,
+    dismissSampleItems,
+    resetAllItems,
     refresh,
   } = useItems({ sampleItems: SAMPLE_ITEMS })
 
-  const isSample = items.length === 0
+  const isSample = items.length === 0 && !sampleDataDismissed
   const displayItems = isSample ? sampleItems : items
   const activeTab = [SCREENS.CATEGORY, SCREENS.REPORT, SCREENS.DATA, SCREENS.SETTINGS, SCREENS.POLICY].includes(screen)
     ? SCREENS.HOME
@@ -230,12 +233,16 @@ export default function App() {
     content = (
       <SettingsScreen
         isPro={isPro}
+        isSample={isSample}
+        itemCount={items.length}
         onBack={goBack}
         onOpenData={() => navigate(SCREENS.DATA)}
         onOpenPrivacy={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.PRIVACY)}
         onOpenTerms={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.TERMS)}
         onOpenLicenses={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.LICENSES)}
         onEntitlementChange={(nextStatus) => setIsPro(resolveProStatus(nextStatus))}
+        onDismissSamples={dismissSampleItems}
+        onResetData={resetAllItems}
       />
     )
   } else if (screen === SCREENS.POLICY) {

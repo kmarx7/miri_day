@@ -7,11 +7,13 @@ import {
   completeItem,
   createItem,
   deleteItem,
+  dismissSampleData,
   exportData,
   getTheme,
   getProStatus,
   getItems,
   importData,
+  isSampleDataDismissed,
   resetUserData,
   restoreDeletedItem,
   restoreItem,
@@ -83,6 +85,7 @@ test('아이템 CRUD와 완료 복원이 동작한다', () => {
     amount: 90000,
   })
   assert.equal(getItems().length, 1)
+  assert.equal(isSampleDataDismissed(), true)
 
   const updated = updateItem(created.id, { title: '8월 월세', amount: 95000 })
   assert.equal(updated.title, '8월 월세')
@@ -122,6 +125,13 @@ test('내보내기와 가져오기 인터페이스가 사용자 데이터를 복
   assert.equal(getItems()[0].title, '우산')
   assert.equal(backup.appName, '미리꼭')
   assert.equal(typeof backup.settings.theme, 'string')
+  assert.equal(isSampleDataDismissed(), true)
+})
+
+test('샘플 없이 시작 상태를 기기에 저장한다', () => {
+  assert.equal(isSampleDataDismissed(), false)
+  dismissSampleData()
+  assert.equal(isSampleDataDismissed(), true)
 })
 
 test('백업 데이터로 Pro 권한을 내보내거나 활성화하지 않는다', () => {
@@ -186,6 +196,7 @@ test('데이터 초기화는 아이템과 설정만 지우고 Pro 권한은 유�
   assert.deepEqual(getItems(), [])
   assert.equal(getTheme(), 'soft')
   assert.equal(getProStatus(), true)
+  assert.equal(isSampleDataDismissed(), true)
 })
 
 test('localStorage 접근이 불가능하면 메모리 저장소로 대체한다', () => {

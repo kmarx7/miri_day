@@ -25,18 +25,24 @@ function SettingButton({ title, description, value, onClick, danger = false }) {
 
 export default function SettingsScreen({
   isPro,
+  isSample,
+  itemCount,
   onBack,
   onOpenData,
   onOpenPrivacy,
   onOpenTerms,
   onOpenLicenses,
   onEntitlementChange,
+  onDismissSamples,
+  onResetData,
 }) {
   const [theme, setThemeState] = useState(() => getTheme())
   const [notificationState, setNotificationState] = useState('checking')
   const [notificationMessage, setNotificationMessage] = useState('')
   const [restoreBusy, setRestoreBusy] = useState(false)
   const [restoreMessage, setRestoreMessage] = useState('')
+  const [resetPending, setResetPending] = useState(false)
+  const [dataMessage, setDataMessage] = useState('')
 
   const refreshNotificationPermission = async ({ request = false } = {}) => {
     setNotificationState('checking')
@@ -76,6 +82,17 @@ export default function SettingsScreen({
     if (result.success) onEntitlementChange?.(getProStatus())
     setRestoreMessage(result.message ?? (result.success ? '구매 내역을 복원했어요.' : '복원할 구매 내역이 없어요.'))
     setRestoreBusy(false)
+  }
+
+  const handleDismissSamples = () => {
+    onDismissSamples?.()
+    setDataMessage('샘플을 지웠어요. 이제 빈 화면에서 시작할 수 있어요.')
+  }
+
+  const handleResetData = () => {
+    onResetData?.()
+    setResetPending(false)
+    setDataMessage('모든 일정과 앱 설정을 초기화했어요.')
   }
 
   const notificationLabel = {
@@ -133,10 +150,36 @@ export default function SettingsScreen({
       </section>
 
       <section className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white" aria-label="데이터 설정">
+        {isSample && (
+          <SettingButton
+            title="샘플 지우고 새로 시작"
+            description="예시 일정 없이 빈 화면에서 시작"
+            value="시작"
+            onClick={handleDismissSamples}
+          />
+        )}
         <SettingButton title="데이터 백업" description="전체 일정과 설정을 JSON으로 저장" onClick={onOpenData} />
         <SettingButton title="데이터 복원" description="백업 JSON을 병합하거나 교체" onClick={onOpenData} />
-        <SettingButton title="데이터 초기화" description="2단계 확인 후 로컬 데이터 삭제" onClick={onOpenData} danger />
+        <SettingButton
+          title="모든 데이터 초기화"
+          description={`${itemCount}개 일정과 앱 설정을 2단계 확인 후 삭제`}
+          onClick={() => { setResetPending(true); setDataMessage('') }}
+          danger
+        />
       </section>
+
+      {resetPending && (
+        <section className="mt-3 rounded-2xl border border-red-200 bg-red-50 p-4" role="alert" aria-labelledby="settings-reset-heading">
+          <h2 id="settings-reset-heading" className="text-sm font-bold text-red-800">정말 전부 지우고 다시 시작할까요?</h2>
+          <p className="mt-1 text-xs leading-relaxed text-red-700">일정과 메모는 복구할 수 없습니다. 필요한 경우 먼저 백업해 주세요.</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setResetPending(false)} className="min-h-11 rounded-xl border border-red-200 bg-white text-sm font-bold text-red-700">취소</button>
+            <button type="button" onClick={handleResetData} className="min-h-11 rounded-xl bg-red-600 text-sm font-bold text-white">2단계 · 모두 삭제</button>
+          </div>
+        </section>
+      )}
+
+      {dataMessage && <p className="mt-3 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600" role="status">{dataMessage}</p>}
 
       <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-5" aria-labelledby="pro-settings-heading">
         <div className="flex items-center justify-between gap-4">

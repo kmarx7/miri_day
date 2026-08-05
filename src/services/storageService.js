@@ -7,6 +7,7 @@ export const STORAGE_KEYS = Object.freeze({
   PRO: 'mirikkok_pro',
   THEME: 'mirikkok_theme',
   SCHEMA_VERSION: 'mirikkok_schema_version',
+  SAMPLE_DISMISSED: 'mirikkok_sample_dismissed',
 })
 
 export const DEFAULT_THEME = 'soft'
@@ -139,6 +140,7 @@ export function getItems() {
 export function createItem(input) {
   const item = createItemModel(input)
   saveItems([...getItems(), item])
+  dismissSampleData()
   return item
 }
 
@@ -237,6 +239,15 @@ export function setTheme(theme) {
   return nextTheme
 }
 
+export function isSampleDataDismissed() {
+  return safeGet(STORAGE_KEYS.SAMPLE_DISMISSED) === 'true'
+}
+
+export function dismissSampleData() {
+  safeSet(STORAGE_KEYS.SAMPLE_DISMISSED, 'true')
+  return true
+}
+
 export function exportData() {
   return {
     schemaVersion: ITEM_SCHEMA_VERSION,
@@ -311,6 +322,7 @@ export function importData(payload, { merge = false } = {}) {
 
   saveItems(nextItems)
   setTheme(data.settings.theme)
+  dismissSampleData()
   safeSet(STORAGE_KEYS.SCHEMA_VERSION, ITEM_SCHEMA_VERSION)
 
   return {
@@ -324,6 +336,7 @@ export function importData(payload, { merge = false } = {}) {
 export function resetUserData() {
   safeRemove(STORAGE_KEYS.ITEMS)
   safeRemove(STORAGE_KEYS.THEME)
+  dismissSampleData()
   safeSet(STORAGE_KEYS.SCHEMA_VERSION, ITEM_SCHEMA_VERSION)
   return { success: true }
 }

@@ -3,7 +3,10 @@ import {
   completeItem as completeStoredItem,
   createItem as createStoredItem,
   deleteItem as deleteStoredItem,
+  dismissSampleData,
   getItems,
+  isSampleDataDismissed,
+  resetUserData,
   restoreDeletedItem,
   restoreItem as restoreStoredItem,
   updateItem as updateStoredItem,
@@ -18,11 +21,13 @@ export const DELETE_UNDO_DURATION_MS = 3000
  */
 export function useItems({ sampleItems = [] } = {}) {
   const [items, setItems] = useState(() => getItems())
+  const [sampleDataDismissed, setSampleDataDismissed] = useState(() => isSampleDataDismissed())
   const [pendingDeletion, setPendingDeletion] = useState(null)
 
   const refresh = useCallback(() => {
     const storedItems = getItems()
     setItems(storedItems)
+    setSampleDataDismissed(isSampleDataDismissed())
     return storedItems
   }, [])
 
@@ -74,6 +79,17 @@ export function useItems({ sampleItems = [] } = {}) {
     return restored
   }, [pendingDeletion, refresh])
 
+  const dismissSampleItems = useCallback(() => {
+    dismissSampleData()
+    setSampleDataDismissed(true)
+  }, [])
+
+  const resetAllItems = useCallback(() => {
+    resetUserData()
+    setPendingDeletion(null)
+    return refresh()
+  }, [refresh])
+
   useEffect(() => {
     if (!pendingDeletion) return undefined
 
@@ -85,6 +101,7 @@ export function useItems({ sampleItems = [] } = {}) {
   return {
     items,
     sampleItems,
+    sampleDataDismissed,
     pendingDeletion,
     createItem,
     updateItem,
@@ -92,6 +109,8 @@ export function useItems({ sampleItems = [] } = {}) {
     completeItem,
     restoreItem,
     undoDelete,
+    dismissSampleItems,
+    resetAllItems,
     refresh,
   }
 }
