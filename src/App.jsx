@@ -4,6 +4,7 @@ import BottomNavigation from './components/layout/BottomNavigation.jsx'
 import StatePanel from './components/feedback/StatePanel.jsx'
 import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
 import { CATEGORIES } from './constants/categories.js'
+import { LEGAL_DOCUMENT_TYPES } from './constants/legal.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
 import { useItems } from './hooks/useItems.js'
 import { evaluateItemCreation, FEATURES, requirePro } from './services/entitlementService.js'
@@ -23,9 +24,10 @@ const CalendarScreen = lazy(() => import('./screens/CalendarScreen.jsx'))
 const CategoryListScreen = lazy(() => import('./screens/CategoryListScreen.jsx'))
 const DataManagementScreen = lazy(() => import('./screens/DataManagementScreen.jsx'))
 const MoneyReportScreen = lazy(() => import('./screens/MoneyReportScreen.jsx'))
+const PolicyScreen = lazy(() => import('./screens/PolicyScreen.jsx'))
 const ProScreen = lazy(() => import('./screens/ProScreen.jsx'))
+const SettingsScreen = lazy(() => import('./screens/SettingsScreen.jsx'))
 const QuickAddSheet = lazy(() => import('./components/input/QuickAddSheet.jsx'))
-
 const SCREENS = Object.freeze({
   HOME: 'home',
   CATEGORY: 'category',
@@ -33,6 +35,8 @@ const SCREENS = Object.freeze({
   REPORT: 'report',
   DATA: 'data',
   PRO: 'pro',
+  SETTINGS: 'settings',
+  POLICY: 'policy',
 })
 const SCREEN_VALUES = Object.freeze(Object.values(SCREENS))
 
@@ -46,6 +50,7 @@ export default function App() {
   const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
   const [isPro, setIsPro] = useState(() => getProStatus())
   const [paywallReason, setPaywallReason] = useState(null)
+  const [legalDocumentType, setLegalDocumentType] = useState(LEGAL_DOCUMENT_TYPES.PRIVACY)
   const {
     items,
     sampleItems,
@@ -61,7 +66,7 @@ export default function App() {
 
   const isSample = items.length === 0
   const displayItems = isSample ? sampleItems : items
-  const activeTab = [SCREENS.CATEGORY, SCREENS.REPORT, SCREENS.DATA].includes(screen)
+  const activeTab = [SCREENS.CATEGORY, SCREENS.REPORT, SCREENS.DATA, SCREENS.SETTINGS, SCREENS.POLICY].includes(screen)
     ? SCREENS.HOME
     : screen
 
@@ -100,6 +105,11 @@ export default function App() {
   }
 
   const requestPro = (feature) => requirePro(feature, { isPro }, openPaywall)
+
+  const openLegalDocument = (documentType) => {
+    setLegalDocumentType(documentType)
+    setAppScreen(SCREENS.POLICY)
+  }
 
   const openNewItem = () => {
     setEditingItem(null)
@@ -211,6 +221,20 @@ export default function App() {
         onDataChanged={refresh}
       />
     )
+  } else if (screen === SCREENS.SETTINGS) {
+    content = (
+      <SettingsScreen
+        isPro={isPro}
+        onBack={goBack}
+        onOpenData={() => navigate(SCREENS.DATA)}
+        onOpenPrivacy={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.PRIVACY)}
+        onOpenTerms={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.TERMS)}
+        onOpenLicenses={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.LICENSES)}
+        onEntitlementChange={setIsPro}
+      />
+    )
+  } else if (screen === SCREENS.POLICY) {
+    content = <PolicyScreen documentType={legalDocumentType} onBack={goBack} />
   } else if (screen === SCREENS.PRO) {
     content = (
       <ProScreen
@@ -229,6 +253,7 @@ export default function App() {
         onEditItem={openItemEditor}
         onOpenReport={() => navigate(SCREENS.REPORT)}
         onOpenBackup={() => navigate(SCREENS.DATA)}
+        onOpenSettings={() => navigate(SCREENS.SETTINGS)}
       />
     )
   }
