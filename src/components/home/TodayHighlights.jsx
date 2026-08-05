@@ -1,0 +1,50 @@
+import { getCategoryLabel } from '../../constants/categories.js'
+import { formatCurrency } from '../../utils/currency.js'
+
+export default function TodayHighlights({ items, expanded, onToggle }) {
+  const visibleItems = expanded ? items : items.slice(0, 2)
+  const amountTotal = items.reduce((sum, item) => sum + (item.amount ?? 0), 0)
+
+  return (
+    <section aria-labelledby="highlight-heading">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2 px-1">
+        <div>
+          <p className="text-xs font-medium text-gray-400">오늘 놓치지 않게</p>
+          <h2 id="highlight-heading" className="mt-0.5 text-base font-bold">오늘의 하이라이트 {items.length}건</h2>
+        </div>
+        {amountTotal > 0 && <span className="text-sm font-semibold">{formatCurrency(amountTotal)}</span>}
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {visibleItems.length === 0 ? (
+          <p className="px-4 py-7 text-center text-sm text-gray-400">오늘 예정된 일정이 없어요.</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {visibleItems.map((item) => (
+              <div key={item.id} className="flex min-h-16 items-center justify-between gap-4 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{item.title}</p>
+                  <p className="mt-1 text-xs text-gray-400">{getCategoryLabel(item.category)}</p>
+                </div>
+                {item.amount !== null && (
+                  <span className="shrink-0 text-sm font-semibold">{formatCurrency(item.amount)}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {items.length > 2 && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="mt-2 min-h-11 w-full rounded-xl text-sm font-semibold text-gray-500 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+        >
+          {expanded ? '접기 ▲' : `외 ${items.length - 2}건 더보기 ▼`}
+        </button>
+      )}
+    </section>
+  )
+}
