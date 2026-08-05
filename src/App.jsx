@@ -3,6 +3,7 @@ import AppShell from './components/layout/AppShell.jsx'
 import BottomNavigation from './components/layout/BottomNavigation.jsx'
 import StatePanel from './components/feedback/StatePanel.jsx'
 import UndoSnackbar from './components/feedback/UndoSnackbar.jsx'
+import { resolveProStatus } from './config/runtime.js'
 import { CATEGORIES } from './constants/categories.js'
 import { LEGAL_DOCUMENT_TYPES } from './constants/legal.js'
 import { SAMPLE_ITEMS } from './data/sampleItems.js'
@@ -48,7 +49,7 @@ export default function App() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
-  const [isPro, setIsPro] = useState(() => getProStatus())
+  const [isPro, setIsPro] = useState(() => resolveProStatus(getProStatus()))
   const [paywallReason, setPaywallReason] = useState(null)
   const [legalDocumentType, setLegalDocumentType] = useState(LEGAL_DOCUMENT_TYPES.PRIVACY)
   const {
@@ -234,7 +235,7 @@ export default function App() {
         onOpenPrivacy={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.PRIVACY)}
         onOpenTerms={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.TERMS)}
         onOpenLicenses={() => openLegalDocument(LEGAL_DOCUMENT_TYPES.LICENSES)}
-        onEntitlementChange={setIsPro}
+        onEntitlementChange={(nextStatus) => setIsPro(resolveProStatus(nextStatus))}
       />
     )
   } else if (screen === SCREENS.POLICY) {

@@ -52,6 +52,8 @@
 
 - 고정 주소: `https://mirikkok-iphone-test.vercel.app`
 - Vercel 프로젝트: `mirikkok-iphone-test`
+- 테스트 권한: Vercel의 `VITE_IPHONE_TEST_PRO=true` 설정으로 현재 구현된 Pro 기능 활성화
+- 적용 범위: 아이폰 테스트 배포만 해당하며 Google Play용 정식 구매 권한과 분리
 - GitHub 연결 저장소: `kmarx7/miri_day`
 - 자동 production 배포 브랜치: `release/iphone-pwa-test`
 - 데이터 저장: 해당 아이폰과 HTTPS origin의 `localStorage`
