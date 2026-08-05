@@ -8,6 +8,8 @@
 
 미리꼭의 웹·Android 빌드 기반과 주요 로컬 기능은 구현되어 있습니다. 그러나 Google Play 유료 출시 준비가 모두 끝난 것은 아닙니다.
 
+아이폰 장기 사용 테스트용 PWA는 `https://mirikkok-iphone-test.vercel.app`에 배포되어 있습니다. 다음 세션에서는 먼저 실제 사용 중 발견한 문제와 JSON 백업 여부를 확인합니다.
+
 가장 먼저 결정할 사항은 다음 둘 중 하나입니다.
 
 1. Pro 평생 이용권을 포함해 처음부터 유료 기능을 출시할지
@@ -18,9 +20,9 @@
 ## 현재 Git 상태
 
 - 원격 저장소: `git@github.com:kmarx7/miri_day.git`
-- 현재 문서 브랜치: `docs/project-status-handoff`
-- 직전 완료 브랜치: `feature/final-handoff-docs`
-- 직전 완료 커밋: `7edeaea docs: add final project handoff documentation`
+- 현재 배포 브랜치: `release/iphone-pwa-test`
+- 아이폰 PWA 배포 기준 커밋: `c0ced39 chore: prepare iphone pwa deployment`
+- Vercel production branch: `release/iphone-pwa-test`
 - Google Play AAB 준비 커밋: `d6f2bff chore: prepare google play release bundle`
 - 기준 버전: `1.0.0`, versionCode `1`
 - package name: `com.mirikkok.app`
@@ -38,8 +40,25 @@
 - 생성된 AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 - AAB 서명 상태: 실제 업로드 키가 없어 미서명
 - 실제 Android 기기 release 검증: 미완료
+- Vercel production 배포: `READY`
+- 배포 HTTPS 응답: 200
+- 배포 manifest: 정상
+- 배포 service worker: `activated`
+- 배포 홈·캘린더 브라우저 검증: 성공, 콘솔 오류 없음
 
 `dist/`, Android 빌드 결과와 실제 서명 파일은 Git에 포함하지 않습니다. 다음 세션에서는 작업을 시작하기 전에 현재 작업 트리와 AAB 존재 여부를 다시 확인합니다.
+
+## 아이폰 장기 테스트 배포
+
+- 고정 주소: `https://mirikkok-iphone-test.vercel.app`
+- Vercel 프로젝트: `mirikkok-iphone-test`
+- GitHub 연결 저장소: `kmarx7/miri_day`
+- 자동 production 배포 브랜치: `release/iphone-pwa-test`
+- 데이터 저장: 해당 아이폰과 HTTPS origin의 `localStorage`
+
+아이폰 Safari에서 주소를 연 뒤 `공유 > 홈 화면에 추가 > 웹 앱으로 열기`를 사용합니다. 테스트 중에는 같은 고정 주소만 사용하고 앱 삭제, Safari 사이트 데이터 삭제와 개인정보 보호 모드를 피합니다. 중요한 일정은 앱의 JSON 백업 기능으로 정기적으로 보관합니다.
+
+현재 아이폰 PWA에서는 Android Capacitor 로컬 알림, Google Play Billing과 Android 뒤로 가기를 테스트할 수 없습니다. 웹 푸시는 별도로 구현되어 있지 않아 아이폰 알림도 제공되지 않습니다.
 
 ## 구현 완료 범위
 
@@ -172,10 +191,11 @@ Google Play에는 개인 개발자 계정과 조직 계정이 있으며 개인 �
 1. 이 문서와 `README.md`의 알려진 제한사항을 읽습니다.
 2. `git status -sb`와 현재 브랜치를 확인합니다.
 3. 원격 브랜치의 최신 상태와 미병합 Pull Request를 확인합니다.
-4. 사용자에게 유료 Pro 동시 출시인지 무료 선출시인지 확인합니다.
-5. 작업 전 수정할 파일과 이유를 먼저 보고합니다.
-6. 승인된 한 단계의 최소 범위만 수정합니다.
-7. 완료 시 `npm test`, `npm run build`, 기존 기능, 수정 파일과 Git 커밋을 확인합니다.
+4. 아이폰 장기 테스트에서 발견한 문제와 최근 JSON 백업 여부를 확인합니다.
+5. 사용자에게 유료 Pro 동시 출시인지 무료 선출시인지 확인합니다.
+6. 작업 전 수정할 파일과 이유를 먼저 보고합니다.
+7. 승인된 한 단계의 최소 범위만 수정합니다.
+8. 완료 시 `npm test`, `npm run build`, 기존 기능, 수정 파일과 Git 커밋을 확인합니다.
 
 ## 관련 문서
 
