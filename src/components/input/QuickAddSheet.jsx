@@ -4,12 +4,19 @@ import { REPEAT_TYPES } from '../../models/item.js'
 import { formatCurrencyInput, parseCurrencyInput } from '../../utils/currency.js'
 import { DATE_PRESETS, formatKoreanYmd, formatYmd, getDatePresetValue, inferDatePreset } from '../../utils/dates.js'
 import { convertLunarToSolar, solarToLunar } from '../../utils/lunar.js'
+import { REPEAT_LABELS } from '../../utils/recurrence.js'
 
 const DATE_PRESET_OPTIONS = [
   { value: DATE_PRESETS.TODAY, label: '오늘' },
   { value: DATE_PRESETS.TOMORROW, label: '내일' },
   { value: DATE_PRESETS.THIS_WEEK, label: '이번 주' },
   { value: DATE_PRESETS.CUSTOM, label: '직접 선택' },
+]
+
+const REPEAT_OPTIONS = [
+  REPEAT_TYPES.NONE,
+  REPEAT_TYPES.MONTHLY,
+  REPEAT_TYPES.YEARLY,
 ]
 
 const HISTORY_KEY = 'mirikkokItemEditor'
@@ -26,6 +33,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
   const [lunarDay, setLunarDay] = useState('')
   const [isLeapMonth, setIsLeapMonth] = useState(false)
   const [repeatType, setRepeatType] = useState(REPEAT_TYPES.NONE)
+  const [repeatNotice, setRepeatNotice] = useState('')
   const [memo, setMemo] = useState('')
   const [memoExpanded, setMemoExpanded] = useState(false)
   const [viewport, setViewport] = useState(null)
@@ -56,6 +64,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
     setLunarDay(initialLunar?.day ? String(initialLunar.day) : '')
     setIsLeapMonth(initialLunar?.isLeapMonth === true)
     setRepeatType(item?.repeatType ?? REPEAT_TYPES.NONE)
+    setRepeatNotice('')
     setMemo(item?.memo ?? '')
     setMemoExpanded(Boolean(item?.memo))
   }, [initialCategory, item, open])
@@ -143,8 +152,26 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
         setLunarDay(String(converted.day))
         setIsLeapMonth(converted.isLeapMonth)
       }
+      if (repeatType === REPEAT_TYPES.MONTHLY) {
+        setRepeatType(REPEAT_TYPES.NONE)
+        setRepeatNotice('음력 일정은 현재 매년 반복만 지원해요.')
+      }
     }
     setIsLunar((value) => !value)
+  }
+
+  const selectRepeatType = (value) => {
+    if (value === REPEAT_TYPES.MONTHLY && isLunar) {
+      setRepeatNotice('음력 일정은 현재 매년 반복만 지원해요.')
+      return
+    }
+    if (value !== REPEAT_TYPES.NONE && !isPro && value !== item?.repeatType) {
+      setRepeatNotice('반복 일정은 Pro에서 사용할 수 있어요. PRO 화면에서 이용권을 확인해 주세요.')
+      return
+    }
+
+    setRepeatType(value)
+    setRepeatNotice('')
   }
 
   const handleSubmit = (event) => {
@@ -161,7 +188,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       lunarMonth: isLunar ? Number(lunarMonth) : null,
       lunarDay: isLunar ? Number(lunarDay) : null,
       isLeapMonth: isLunar && isLeapMonth,
-      repeatType: category === CATEGORIES.MEMORY ? repeatType : REPEAT_TYPES.NONE,
+      repeatType: isPro || repeatType === item?.repeatType ? repeatType : REPEAT_TYPES.NONE,
       memo,
     })
     requestClose()
@@ -357,28 +384,34 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
               )}
             </fieldset>
 
-            {category === CATEGORIES.MEMORY && (
-              <div className="mt-4 flex min-h-14 items-center justify-between rounded-xl border border-gray-200 bg-white px-4">
-                <div>
-                  <p className="text-sm font-semibold">매년 반복</p>
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {isLunar && !isPro ? '저장 후 Pro에서 자동 재계산할 수 있어요.' : '다가오는 기념일을 매년 계산해요.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={repeatType === REPEAT_TYPES.YEARLY}
-                  aria-label="매년 반복"
-                  onClick={() => setRepeatType((value) => (
-                    value === REPEAT_TYPES.YEARLY ? REPEAT_TYPES.NONE : REPEAT_TYPES.YEARLY
-                  ))}
-                  className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${repeatType === REPEAT_TYPES.YEARLY ? 'bg-black' : 'bg-gray-300'}`}
-                >
-                  <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${repeatType === REPEAT_TYPES.YEARLY ? 'translate-x-5' : 'translate-x-1'}`} />
-                </button>
+            <fieldset className="mt-5">
+              <legend className="text-sm font-semibold">반복</legend>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {REPEAT_OPTIONS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => selectRepeatType(value)}
+                    aria-pressed={repeatType === value}
+                    className={`min-h-11 rounded-xl border px-2 text-sm font-semibold ${
+                      repeatType === value ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500'
+                    }`}
+                  >
+                    {REPEAT_LABELS[value]}
+                  </button>
+                ))}
               </div>
-            )}
+              {repeatNotice && (
+                <p className="mt-2 rounded-xl bg-[#FFFEF5] px-3 py-2 text-xs font-medium leading-relaxed text-[#8A6517]" role="status">
+                  {repeatNotice}
+                </p>
+              )}
+              {editing && repeatType !== REPEAT_TYPES.NONE && (
+                <p className="mt-2 text-xs leading-relaxed text-gray-400">
+                  현재 MVP에서는 이 일정만·이후 일정 수정은 지원하지 않으며, 수정 내용은 전체 반복 일정에 적용돼요.
+                </p>
+              )}
+            </fieldset>
 
             <div className="mt-4 rounded-xl border border-gray-200 bg-white">
               <button

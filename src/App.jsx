@@ -90,7 +90,7 @@ export default function App() {
       />
     )
   } else if (screen === SCREENS.CALENDAR) {
-    content = <CalendarScreen items={displayItems} isSample={isSample} onEditItem={openItemEditor} />
+    content = <CalendarScreen items={displayItems} isSample={isSample} isPro={isPro} onEditItem={openItemEditor} />
   } else if (screen === SCREENS.PRO) {
     content = <ProScreen />
   } else {
