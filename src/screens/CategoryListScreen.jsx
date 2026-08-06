@@ -19,12 +19,14 @@ export default function CategoryListScreen({
   onQuickAdd,
 }) {
   const [completedExpanded, setCompletedExpanded] = useState(true)
+  const [expandedMemoId, setExpandedMemoId] = useState(null)
   const [displaySwipeHint] = useState(showSwipeHint)
   const categoryItems = items.filter((item) => item.category === category)
   const activeItems = categoryItems.filter((item) => !item.completed)
   const completedItems = categoryItems.filter((item) => item.completed)
   const amountTotal = activeItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
   const completionLabel = getCompletionLabel(category)
+  const toggleMemo = (id) => setExpandedMemoId((current) => (current === id ? null : id))
 
   useEffect(() => {
     if (!isSample && displaySwipeHint && activeItems.length > 0) onSwipeHintShown?.()
@@ -49,6 +51,8 @@ export default function CategoryListScreen({
           onDelete={isSample ? undefined : onDeleteItem}
           completionLabel={completionLabel}
           showSwipeHint={!isSample && displaySwipeHint}
+          expandedMemoId={expandedMemoId}
+          onToggleMemo={toggleMemo}
         />
       </section>
 
@@ -73,6 +77,8 @@ export default function CategoryListScreen({
                 onRestore={isSample ? undefined : onRestoreItem}
                 onDelete={isSample ? undefined : onDeleteItem}
                 completionLabel={completionLabel}
+                expandedMemoId={expandedMemoId}
+                onToggleMemo={toggleMemo}
               />
             </div>
           )}

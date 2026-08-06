@@ -1,8 +1,34 @@
 import { useEffect, useRef, useState } from 'react'
-import { getCategoryColor } from '../../constants/categories.js'
+import { getCategoryActionColor, getCategoryColor } from '../../constants/categories.js'
 import { formatCurrency } from '../../utils/currency.js'
-import { formatShortDate } from '../../utils/dates.js'
+import { formatCompactCreatedAt, formatCompactDueDate, formatDDay } from '../../utils/dates.js'
 import { clampSwipeOffset, resolveSwipeAction, SWIPE_ACTIONS } from '../../utils/swipe.js'
+
+function MemoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 4h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4.5 3v-3H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+      <path d="M8 8h8M8 12h6" />
+    </svg>
+  )
+}
+
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m4 20 4.2-1 10.6-10.6a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z" />
+      <path d="m14.5 6.7 2.8 2.8" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+    </svg>
+  )
+}
 
 export default function SwipeableItem({
   item,
@@ -12,9 +38,10 @@ export default function SwipeableItem({
   onRestore,
   onDelete,
   showSwipeHint = false,
+  memoExpanded = false,
+  onToggleMemo,
 }) {
   const [offset, setOffset] = useState(0)
-  const [menuOpen, setMenuOpen] = useState(false)
   const gestureRef = useRef(null)
   const suppressClickRef = useRef(false)
   const resetClickTimerRef = useRef(null)
@@ -85,28 +112,48 @@ export default function SwipeableItem({
     setOffset(gesture.offset)
   }
 
-  const handleEdit = () => {
-    if (suppressClickRef.current) return
-    onEdit?.(item)
+  const handleMemoToggle = () => {
+    if (suppressClickRef.current || !item.memo) return
+    onToggleMemo?.(item.id)
   }
 
-  const runMenuAction = (action) => {
-    setMenuOpen(false)
-    action?.(item.id)
-  }
-
-  const dateLabel = item.isLunar && item.lunarMonth && item.lunarDay
-    ? `음력 ${item.lunarMonth}.${item.lunarDay}`
-    : formatShortDate(item.dueDate)
+  const completionAction = item.completed ? onRestore : onComplete
+  const createdLabel = formatCompactCreatedAt(item.createdAt)
+  const dueLabel = item.isLunar && item.lunarMonth && item.lunarDay
+    ? `음력 ${item.lunarMonth}.${item.lunarDay}${item.dueTime ? ` ${item.dueTime}` : ''}`
+    : formatCompactDueDate(item.dueDate, item.dueTime)
+  const dDayLabel = formatDDay(item.dueDate)
+  const summary = (
+    <>
+      <span className="item-title-row">
+        <span className={`item-title ${item.completed ? 'line-through' : ''}`}>{item.title}</span>
+        {item.memo && (
+          <span className="item-memo-indicator" role="img" aria-label="메모 있음"><MemoIcon /></span>
+        )}
+        {item.amount !== null && <span className="item-amount">{formatCurrency(item.amount)}</span>}
+      </span>
+      {memoExpanded && <span className="item-memo-preview">{item.memo}</span>}
+      <span className="item-meta" aria-hidden="true">
+        {createdLabel && <span className="item-created-meta">{createdLabel}</span>}
+        {dueLabel && <span className="item-meta-divider">|</span>}
+        {dueLabel && <span className="item-due-meta">{dueLabel}</span>}
+        {dDayLabel && <span className="item-dday">{dDayLabel}</span>}
+      </span>
+      <span className="sr-only">
+        {createdLabel ? `등록 ${createdLabel}. ` : ''}
+        {dueLabel ? `예정 ${dueLabel}. ` : ''}
+        {dDayLabel}
+      </span>
+    </>
+  )
 
   return (
-    <article className={`swipe-item ${showSwipeHint ? 'swipe-hint' : ''}`}>
-      <div className="swipe-action swipe-action-complete" aria-hidden="true">
-        <span>{completionLabel}</span>
-      </div>
-      <div className="swipe-action swipe-action-delete" aria-hidden="true">
-        <span>삭제</span>
-      </div>
+    <article
+      className={`swipe-item ${memoExpanded ? 'swipe-item-memo-open' : ''} ${showSwipeHint ? 'swipe-hint' : ''}`}
+      style={{ '--item-action': getCategoryActionColor(item.category) }}
+    >
+      <div className="swipe-action swipe-action-complete" aria-hidden="true"><span>{completionLabel}</span></div>
+      <div className="swipe-action swipe-action-delete" aria-hidden="true"><span>삭제</span></div>
 
       <div
         className={`swipe-item-content ${item.completed ? 'swipe-item-completed' : ''}`}
@@ -116,48 +163,39 @@ export default function SwipeableItem({
         onPointerUp={finishGesture}
         onPointerCancel={cancelGesture}
       >
-        <span
-          className="h-9 w-1 shrink-0 rounded-full"
-          style={{ backgroundColor: getCategoryColor(item.category) }}
-          aria-hidden="true"
-        />
+        <span className="item-category-bar" style={{ backgroundColor: getCategoryColor(item.category) }} aria-hidden="true" />
         <button
           type="button"
-          onClick={handleEdit}
-          aria-label={`${item.title} 수정`}
-          className="min-w-0 flex-1 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          onClick={() => completionAction?.(item.id)}
+          disabled={!completionAction}
+          aria-label={item.completed ? `${item.title} 진행 중으로 복원` : `${item.title} ${completionLabel} 처리`}
+          className="item-completion-button"
         >
-          <span className={`block truncate text-sm font-semibold ${item.completed ? 'line-through' : ''}`}>{item.title}</span>
-          <span className="mt-1 block text-xs text-gray-400">{dateLabel}</span>
+          <span className={`item-check-circle ${item.completed ? 'item-check-circle-completed' : ''}`} aria-hidden="true">
+            {item.completed ? '✓' : ''}
+          </span>
         </button>
-        {item.amount !== null && (
-          <span className="shrink-0 text-sm font-semibold">{formatCurrency(item.amount)}</span>
-        )}
-        <div className="relative shrink-0">
+
+        {item.memo ? (
           <button
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label={`${item.title} 작업 메뉴`}
-            aria-expanded={menuOpen}
-            className="grid h-11 w-11 place-items-center rounded-full text-xl text-gray-500 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+            onClick={handleMemoToggle}
+            aria-expanded={memoExpanded}
+            aria-label={`${item.title} 메모 ${memoExpanded ? '접기' : '펼치기'}`}
+            className="item-details"
           >
-            <span aria-hidden="true">⋮</span>
+            {summary}
           </button>
-          {menuOpen && (
-            <div className="item-action-menu" role="menu" aria-label={`${item.title} 작업`}>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => runMenuAction(item.completed ? onRestore : onComplete)}
-              >
-                {item.completed ? '진행 중으로 복원' : completionLabel}
-              </button>
-              <button type="button" role="menuitem" onClick={() => runMenuAction(onDelete)} className="text-red-600">
-                삭제
-              </button>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="item-details">{summary}</div>
+        )}
+
+        <button type="button" onClick={() => onEdit?.(item)} disabled={!onEdit} aria-label={`${item.title} 수정`} className="item-action-button">
+          <PencilIcon />
+        </button>
+        <button type="button" onClick={() => onDelete?.(item.id)} disabled={!onDelete} aria-label={`${item.title} 삭제`} className="item-action-button item-delete-button">
+          <TrashIcon />
+        </button>
       </div>
     </article>
   )

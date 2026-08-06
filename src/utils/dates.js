@@ -8,6 +8,15 @@ const seoulDateFormatter = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 })
 
+const seoulDateTimeFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: SEOUL_TIME_ZONE,
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+})
+
 export function parseYmdParts(value) {
   if (typeof value !== 'string') return null
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
@@ -122,6 +131,35 @@ export function formatKoreanYmd(value) {
   const parts = parseYmdParts(value)
   if (!parts) return ''
   return `${parts.year}년 ${parts.month}월 ${parts.day}일`
+}
+
+export function formatCompactTime(value) {
+  if (typeof value !== 'string') return ''
+  const match = /^(?:([01]\d|2[0-3])):([0-5]\d)$/.exec(value)
+  if (!match) return ''
+  const hour = Number(match[1])
+  const period = hour < 12 ? 'am' : 'pm'
+  return `(${period}:${hour % 12 || 12}:${match[2]})`
+}
+
+export function formatCompactDueDate(value, time = null) {
+  const parts = parseYmdParts(value)
+  if (!parts) return ''
+  const timeLabel = formatCompactTime(time)
+  return `${parts.month}.${parts.day}${timeLabel ? ` ${timeLabel}` : ''}`
+}
+
+export function formatCompactCreatedAt(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const parts = Object.fromEntries(
+    seoulDateTimeFormatter.formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  )
+  const period = parts.dayPeriod?.toLowerCase()
+  if (!parts.month || !parts.day || !parts.hour || !parts.minute || !period) return ''
+  return `${parts.month}.${parts.day} (${period}:${parts.hour}:${parts.minute})`
 }
 
 export function getMonthDays(date) {

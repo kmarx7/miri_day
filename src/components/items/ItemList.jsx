@@ -10,6 +10,8 @@ export default function ItemList({
   onDelete,
   completionLabel = '완료',
   showSwipeHint = false,
+  expandedMemoId = null,
+  onToggleMemo,
 }) {
   if (items.length === 0) {
     return <StatePanel title={emptyMessage} />
@@ -27,6 +29,8 @@ export default function ItemList({
           onRestore={onRestore}
           onDelete={onDelete}
           showSwipeHint={showSwipeHint && index === 0}
+          memoExpanded={expandedMemoId === item.id}
+          onToggleMemo={onToggleMemo}
         />
       ))}
     </div>
