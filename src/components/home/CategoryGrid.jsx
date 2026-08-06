@@ -74,7 +74,7 @@ export default function CategoryGrid({ items, onSelect }) {
               key={category}
               type="button"
               onClick={() => onSelect(category)}
-              className={`${color} flex min-h-28 flex-col items-start justify-between rounded-2xl p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
+              className={`${color} flex min-h-36 flex-col items-start justify-between rounded-[1.375rem] p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
             >
               <span className={`${iconBackground} ${iconColor} grid h-11 w-11 place-items-center rounded-2xl`} aria-hidden="true">
                 <CategoryIcon category={category} />
@@ -82,7 +82,7 @@ export default function CategoryGrid({ items, onSelect }) {
               <span className="mt-5 min-w-0">
                 <span className="block text-base font-bold leading-snug">{label}</span>
                 <span className="mt-1 block text-sm leading-snug text-gray-600">
-                  {categoryItems.length}개{amount > 0 ? ` · ${formatCurrency(amount)}` : ' 남음'}
+                  {amount > 0 ? formatCurrency(amount) : `${categoryItems.length}개 남음`}
                 </span>
               </span>
             </button>

@@ -6,7 +6,7 @@ import TodayHighlights from '../components/home/TodayHighlights.jsx'
 import ManagementLinks from '../components/home/ManagementLinks.jsx'
 import { formatKoreanToday, formatYmd } from '../utils/dates.js'
 
-export default function HomeScreen({ items, isSample, isPro, onSelectCategory, onEditItem, onOpenReport, onOpenBackup, onOpenSettings }) {
+export default function HomeScreen({ items, isSample, isPro, testProEnabled = false, onSelectCategory, onEditItem, onOpenReport, onOpenBackup, onOpenSettings }) {
   const [memoryExpanded, setMemoryExpanded] = useState(false)
   const [highlightsExpanded, setHighlightsExpanded] = useState(false)
   const today = formatYmd(new Date())
@@ -24,9 +24,13 @@ export default function HomeScreen({ items, isSample, isPro, onSelectCategory, o
     <div>
       <header className="pb-6 pt-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-extrabold tracking-tight">미리꼭</h1>
+          <h1 className="text-3xl font-extrabold tracking-[-0.05em]">미리꼭</h1>
           <div className="flex items-center gap-2">
-            {isSample && <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-500">샘플 미리보기</span>}
+            {testProEnabled ? (
+              <span className="rounded-full bg-white px-2.5 py-1 text-[0.625rem] font-semibold text-gray-500">테스트 Pro 활성화</span>
+            ) : isSample ? (
+              <span className="rounded-full bg-white px-2.5 py-1 text-[0.625rem] font-semibold text-gray-500">샘플 미리보기</span>
+            ) : null}
             <button
               type="button"
               onClick={onOpenSettings}
@@ -37,8 +41,7 @@ export default function HomeScreen({ items, isSample, isPro, onSelectCategory, o
             </button>
           </div>
         </div>
-        <p className="mt-2 text-sm font-medium text-gray-600">{formatKoreanToday()}</p>
-        <p className="mt-1 text-sm leading-relaxed text-gray-400">일정과 메모는 이 기기에 저장돼요 🔒</p>
+        <p className="mt-4 text-sm font-semibold text-gray-600">{formatKoreanToday()}</p>
       </header>
 
       <div className="space-y-7">

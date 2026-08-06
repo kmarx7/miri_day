@@ -4,16 +4,11 @@ import StatePanel from '../feedback/StatePanel.jsx'
 
 export default function TodayHighlights({ items, expanded, onToggle, onEdit }) {
   const visibleItems = expanded ? items : items.slice(0, 2)
-  const amountTotal = items.reduce((sum, item) => sum + (item.amount ?? 0), 0)
 
   return (
     <section aria-labelledby="highlight-heading">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-2 px-1">
-        <div>
-          <p className="text-xs font-medium text-gray-400">오늘 놓치지 않게</p>
-          <h2 id="highlight-heading" className="mt-0.5 text-base font-bold">오늘의 하이라이트 {items.length}건</h2>
-        </div>
-        {amountTotal > 0 && <span className="text-sm font-semibold">{formatCurrency(amountTotal)}</span>}
+      <div className="mb-3 px-1">
+        <h2 id="highlight-heading" className="text-base font-bold">오늘 놓치지 않게 {items.length}</h2>
       </div>
 
       {visibleItems.length === 0 ? (

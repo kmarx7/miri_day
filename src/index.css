@@ -96,6 +96,10 @@ select {
   bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
+button.memory-summary-button {
+  min-height: 4.25rem;
+}
+
 .category-screen {
   padding-bottom: 10rem;
 }
