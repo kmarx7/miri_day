@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getCategoryLabel, getCompletionLabel } from '../constants/categories.js'
 import ItemList from '../components/items/ItemList.jsx'
+import CategoryQuickAdd from '../components/input/CategoryQuickAdd.jsx'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
 import { formatCurrency } from '../utils/currency.js'
 
@@ -15,6 +16,7 @@ export default function CategoryListScreen({
   onDeleteItem,
   showSwipeHint,
   onSwipeHintShown,
+  onQuickAdd,
 }) {
   const [completedExpanded, setCompletedExpanded] = useState(true)
   const [displaySwipeHint] = useState(showSwipeHint)
@@ -29,7 +31,7 @@ export default function CategoryListScreen({
   }, [activeItems.length, displaySwipeHint, isSample, onSwipeHintShown])
 
   return (
-    <div className="pt-5">
+    <div className="category-screen pt-5">
       <ScreenHeader
         eyebrow={isSample ? '샘플 미리보기' : `${activeItems.length}개 남음`}
         title={getCategoryLabel(category)}
@@ -76,6 +78,7 @@ export default function CategoryListScreen({
           )}
         </section>
       )}
+      <CategoryQuickAdd category={category} onSave={onQuickAdd} />
     </div>
   )
 }
