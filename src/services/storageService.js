@@ -93,6 +93,7 @@ function isBackupItemShape(item) {
   if (!item || typeof item !== 'object') return false
   const validAmount = item.amount === null || (Number.isFinite(item.amount) && item.amount >= 0)
   const validDueDate = item.dueDate === null || parseYmdParts(item.dueDate) !== null
+  const validDueTime = item.dueTime === null || (typeof item.dueTime === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.dueTime))
   const validCompletedAt = item.completedAt === null || isValidTimestamp(item.completedAt)
   const validLunarPart = (value) => value === null || Number.isInteger(value)
   const validRepeatType = Object.values(REPEAT_TYPES).includes(item.repeatType)
@@ -106,6 +107,7 @@ function isBackupItemShape(item) {
     && item.title.trim().length > 0
     && validAmount
     && validDueDate
+    && validDueTime
     && typeof item.memo === 'string'
     && typeof item.completed === 'boolean'
     && validCompletedAt
@@ -285,7 +287,12 @@ export function validateBackupData(payload) {
     return { success: false, error: '올바른 미리꼭 백업 데이터가 아닙니다.' }
   }
 
-  if (!parsed.items.every(isBackupItemShape)) {
+  const backupItemsValid = parsed.items.every((item) => (
+    parsed.schemaVersion < 2
+      ? isBackupItemShape({ ...item, dueTime: item.dueTime ?? null })
+      : isBackupItemShape(item)
+  ))
+  if (!backupItemsValid) {
     return { success: false, error: '백업에 올바르지 않은 아이템이 포함돼 있습니다.' }
   }
   const normalizedItems = parsed.items.map(normalizeStoredItem)

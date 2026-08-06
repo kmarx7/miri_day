@@ -12,10 +12,23 @@ import { getOccurrencesForRange } from './recurrence.js'
 
 const MAX_ANDROID_NOTIFICATION_ID = 2_147_483_647
 
-export function createSeoulNotificationDate(value, hour = NOTIFICATION_HOUR_KST) {
+export function createSeoulNotificationDate(value, time = NOTIFICATION_HOUR_KST) {
   const parts = parseYmdParts(value)
-  if (!parts || !Number.isInteger(hour) || hour < 0 || hour > 23) return null
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, hour - 9))
+  if (!parts) return null
+
+  let hour
+  let minute = 0
+  if (typeof time === 'string') {
+    const match = /^(?:([01]\d|2[0-3])):([0-5]\d)$/.exec(time)
+    if (!match) return null
+    hour = Number(match[1])
+    minute = Number(match[2])
+  } else {
+    hour = time
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null
+
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, hour - 9, minute))
 }
 
 function hashNotificationKey(key) {
@@ -79,7 +92,7 @@ export function buildItemNotificationPlans(item, {
   for (const occurrence of getOccurrences(item, now, isPro, scheduleDays)) {
     for (const offset of offsets) {
       const notificationDate = addDaysToYmd(occurrence.date, -offset)
-      const at = createSeoulNotificationDate(notificationDate)
+      const at = createSeoulNotificationDate(notificationDate, item.dueTime ?? NOTIFICATION_HOUR_KST)
       if (!at || at.getTime() <= now.getTime()) continue
 
       const notificationKey = createNotificationKey(item.id, occurrence.date, offset)

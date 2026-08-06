@@ -59,6 +59,7 @@ test('아이템 모델이 기본값과 카테고리별 금액 규칙을 적용�
 
   assert.equal(item.title, '할 일')
   assert.equal(item.amount, null)
+  assert.equal(item.dueTime, null)
   assert.equal(item.repeatType, REPEAT_TYPES.NONE)
   assert.deepEqual(item.notificationOffsets, [])
   assert.equal(item.createdAt, '2026-08-05T00:00:00.000Z')
@@ -83,8 +84,10 @@ test('아이템 CRUD와 완료 복원이 동작한다', () => {
     category: CATEGORIES.PAYMENT,
     title: '월세',
     amount: 90000,
+    dueTime: '09:40',
   })
   assert.equal(getItems().length, 1)
+  assert.equal(getItems()[0].dueTime, '09:40')
   assert.equal(isSampleDataDismissed(), true)
 
   const updated = updateItem(created.id, { title: '8월 월세', amount: 95000 })
@@ -98,6 +101,14 @@ test('아이템 CRUD와 완료 복원이 동작한다', () => {
   const restored = restoreItem(created.id)
   assert.equal(restored.completed, false)
   assert.equal(restored.completedAt, null)
+})
+
+test('예정 시간은 HH:mm 형식만 저장한다', () => {
+  const valid = createItemModel({ category: CATEGORIES.TODO, title: '정상 시간', dueTime: '23:59' })
+  const invalid = createItemModel({ category: CATEGORIES.TODO, title: '잘못된 시간', dueTime: '24:00' })
+
+  assert.equal(valid.dueTime, '23:59')
+  assert.equal(invalid.dueTime, null)
 })
 
 test('삭제 스냅샷으로 원래 위치에 실행취소할 수 있다', () => {
@@ -166,6 +177,27 @@ test('백업 아이템의 필수 필드와 날짜 구조를 검증한다', () =>
   assert.equal(validateBackupData(backup).success, false)
   delete backup.items[0].memo
   assert.equal(validateBackupData(backup).success, false)
+})
+
+test('v1 백업은 예정 시간이 없어도 가져오고 v2 백업은 시간 형식을 검증한다', () => {
+  const legacyItem = createItemModel({ category: CATEGORIES.TODO, title: '구버전 항목' })
+  delete legacyItem.dueTime
+  const legacyBackup = {
+    schemaVersion: 1,
+    exportedAt: new Date().toISOString(),
+    appName: '미리꼭',
+    settings: { theme: 'soft' },
+    items: [legacyItem],
+  }
+
+  const legacyValidation = validateBackupData(legacyBackup)
+  assert.equal(legacyValidation.success, true)
+  assert.equal(legacyValidation.data.items[0].dueTime, null)
+
+  const currentBackup = { ...legacyBackup, schemaVersion: ITEM_SCHEMA_VERSION }
+  assert.equal(validateBackupData(currentBackup).success, false)
+  currentBackup.items = [{ ...legacyItem, dueTime: '25:00' }]
+  assert.equal(validateBackupData(currentBackup).success, false)
 })
 
 test('병합은 중복 ID를 갱신하고 교체는 기존 항목을 제거한다', () => {

@@ -1,6 +1,6 @@
 import { CATEGORIES, isCategory } from '../constants/categories.js'
 
-export const ITEM_SCHEMA_VERSION = 1
+export const ITEM_SCHEMA_VERSION = 2
 
 export const REPEAT_TYPES = Object.freeze({
   NONE: 'none',
@@ -20,6 +20,7 @@ const REPEAT_TYPE_VALUES = Object.freeze(Object.values(REPEAT_TYPES))
  * @property {string} title
  * @property {number | null} amount
  * @property {string | null} dueDate
+ * @property {string | null} dueTime
  * @property {string} memo
  * @property {boolean} completed
  * @property {string | null} completedAt
@@ -45,6 +46,12 @@ function nullableString(value) {
 
 function nullableInteger(value) {
   return Number.isInteger(value) ? value : null
+}
+
+function nullableTime(value) {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(normalized) ? normalized : null
 }
 
 function normalizeAmount(value, category) {
@@ -84,6 +91,7 @@ export function createItemModel(input, now = new Date()) {
     title,
     amount: normalizeAmount(input.amount, input.category),
     dueDate: nullableString(input.dueDate),
+    dueTime: nullableTime(input.dueTime),
     memo: typeof input.memo === 'string' ? input.memo : '',
     completed,
     completedAt: completed ? nullableString(input.completedAt) : null,

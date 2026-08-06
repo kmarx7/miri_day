@@ -17,6 +17,7 @@ function item(overrides = {}) {
     category: CATEGORIES.TODO,
     title: '준비물 챙기기',
     dueDate: '2026-08-10',
+    dueTime: null,
     completed: false,
     isLunar: false,
     lunarMonth: null,
@@ -31,6 +32,15 @@ function item(overrides = {}) {
 
 test('알림 시각은 실행 환경과 무관하게 Asia/Seoul 오전 9시로 계산한다', () => {
   assert.equal(createSeoulNotificationDate('2026-08-10').toISOString(), '2026-08-10T00:00:00.000Z')
+})
+
+test('저장된 예정 시간을 Asia/Seoul 기준 알림 시각으로 사용한다', () => {
+  assert.equal(createSeoulNotificationDate('2026-08-10', '18:40').toISOString(), '2026-08-10T09:40:00.000Z')
+
+  const [plan] = buildItemNotificationPlans(item({ dueTime: '18:40', notificationOffsets: [0] }), {
+    now: new Date('2026-08-01T00:00:00+09:00'),
+  })
+  assert.equal(plan.schedule.at.toISOString(), '2026-08-10T09:40:00.000Z')
 })
 
 test('Free는 당일만, Pro는 D-7·D-3·하루 전·당일 알림을 만든다', () => {
