@@ -1,14 +1,14 @@
 # 미리꼭 프로젝트 상태 및 다음 세션 인수인계
 
-마지막 갱신: 2026-08-06 (Asia/Seoul)
+마지막 갱신: 2026-08-07 (Asia/Seoul)
 
 이 문서는 다음 개발 세션을 시작할 때 가장 먼저 읽습니다. 실제 코드·Play Console·기기 상태가 바뀌었다면 먼저 이 문서와 체크리스트를 갱신합니다.
 
 ## 다음 세션에서 먼저 알려줄 내용
 
-미리꼭의 웹·Android 빌드 기반과 주요 로컬 기능은 구현되어 있습니다. 그러나 Google Play 유료 출시 준비가 모두 끝난 것은 아닙니다.
+미리꼭의 웹·PWA 기반과 주요 로컬 기능은 구현되어 있습니다. Android 프로젝트와 알림 계산 기반도 있지만, Google Play 유료 출시 준비가 모두 끝난 것은 아닙니다.
 
-아이폰 장기 사용 테스트용 PWA는 `https://mirikkok-iphone-test.vercel.app`에 배포되어 있습니다. 다음 세션에서는 먼저 실제 사용 중 발견한 문제와 JSON 백업 여부를 확인합니다.
+아이폰 장기 사용 테스트용 PWA는 `https://mirikkok-iphone-test.vercel.app`에 최신 브랜치 기준으로 배포되어 있습니다. 테스트 배포에서는 `VITE_IPHONE_TEST_PRO=true`로 현재 구현된 Pro 기능을 사용할 수 있습니다. 다음 세션에서는 먼저 실제 사용 중 발견한 문제와 JSON 백업 여부를 확인합니다.
 
 가장 먼저 결정할 사항은 다음 둘 중 하나입니다.
 
@@ -20,24 +20,24 @@
 ## 현재 Git 상태
 
 - 원격 저장소: `git@github.com:kmarx7/miri_day.git`
-- 현재 배포 브랜치: `release/iphone-pwa-test`
-- 아이폰 PWA 배포 기준 커밋: `c0ced39 chore: prepare iphone pwa deployment`
+- 현재 작업 브랜치: `feat/category-quick-add-ux`
+- 최신 커밋: `cbbc9b2 feat: show category indicators in calendar`
+- 아이폰 PWA 최신 배포: Vercel production `READY`, 고정 주소 alias 유지
 - Vercel production branch: `release/iphone-pwa-test`
 - Google Play AAB 준비 커밋: `d6f2bff chore: prepare google play release bundle`
 - 기준 버전: `1.0.0`, versionCode `1`
 - package name: `com.mirikkok.app`
 
-기능 브랜치들은 앞 단계 커밋을 순차적으로 포함하지만 `main`에는 아직 병합되지 않았습니다. 다음 출시 작업 전에 최신 브랜치의 변경을 검토하고 Pull Request 또는 명시적인 병합 절차로 `main`에 반영해야 합니다.
+현재 작업 브랜치는 `origin/feat/category-quick-add-ux`와 동기화되어 있습니다. `main`과 `release/iphone-pwa-test`에는 최신 UI 변경이 아직 병합되지 않았습니다. 정식 출시 전에는 Pull Request 또는 명시적인 병합 절차로 반영해야 합니다.
 
 ## 마지막 검증 결과
 
-- `npm test`: 67개 통과
+- `npm test`: 81개 통과
 - `npm run build`: 성공
-- `npx cap sync android`: 성공
-- Android `lintRelease`: 성공
-- Android `bundleRelease`: 성공
-- R8 코드 축소와 리소스 축소: 활성화
-- 생성된 AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+- `npx cap sync android`: 이전 실행 성공(최신 웹 변경 후 Android 작업 전에 다시 실행 필요)
+- Android Gradle debug/release: 현재 Mac에 Java Runtime이 없어 실행 불가
+- Android `lintRelease`/`bundleRelease`: 이전 단계 성공 기록은 있으나 최신 브랜치 기준 재검증 필요
+- R8 코드 축소와 리소스 축소: 설정 활성화
 - AAB 서명 상태: 실제 업로드 키가 없어 미서명
 - 실제 Android 기기 release 검증: 미완료
 - Vercel production 배포: `READY`
@@ -62,6 +62,23 @@
 
 현재 아이폰 PWA에서는 Android Capacitor 로컬 알림, Google Play Billing과 Android 뒤로 가기를 테스트할 수 없습니다. 웹 푸시는 별도로 구현되어 있지 않아 아이폰 알림도 제공되지 않습니다.
 
+아이폰 테스트 배포에서 가능한 범위:
+
+- 일정·할 일·지출·기념일 CRUD
+- 음력·윤달 변환과 D-Day
+- 반복 일정 계산
+- 캘린더와 카테고리별 색상 점
+- 돈 리포트
+- JSON 백업·복원·초기화
+- 테스트 Pro로 제한 해제된 UI 확인
+
+아이폰 테스트 배포에서 불가능한 범위:
+
+- Google Play Billing 실제 구매·복원
+- Android Capacitor 로컬 알림과 재부팅 후 예약 유지
+- Android 하드웨어 뒤로 가기
+- Android release 서명·AAB 설치 검증
+
 ## 구현 완료 범위
 
 - Vite + React + Tailwind 모바일 우선 UI
@@ -79,6 +96,13 @@
 - Android 로컬 알림 계산·권한·채널·예약 동기화
 - 앱 내부 개인정보처리방침·이용약관·오픈소스 고지
 - release R8·선택적 서명 설정과 인수인계 체크리스트
+- 카테고리별 빠른 입력(제목·금액·날짜·시간·메모)
+- 입력·목록의 예정 시간과 등록 시간 구분
+- 목록 메모 아이콘·인라인 펼침·수정 버튼
+- 홈의 간결한 기억할 것 요약과 오늘 하이라이트
+- PRO 화면의 돈 리포트 바로가기, 설정의 백업·복원 유지
+- 캘린더 날짜별 카테고리 색상 점(중복 카테고리는 한 점)
+- 모바일 320px·390px 레이아웃, 키보드·safe-area·실행취소 위치 보완
 
 자세한 구현 구조는 `README.md`, 변경 이력은 `CHANGELOG.md`를 확인합니다.
 
@@ -191,13 +215,14 @@ Google Play에는 개인 개발자 계정과 조직 계정이 있으며 개인 �
 ## 다음 세션 시작 절차
 
 1. 이 문서와 `README.md`의 알려진 제한사항을 읽습니다.
-2. `git status -sb`와 현재 브랜치를 확인합니다.
-3. 원격 브랜치의 최신 상태와 미병합 Pull Request를 확인합니다.
-4. 아이폰 장기 테스트에서 발견한 문제와 최근 JSON 백업 여부를 확인합니다.
-5. 사용자에게 유료 Pro 동시 출시인지 무료 선출시인지 확인합니다.
-6. 작업 전 수정할 파일과 이유를 먼저 보고합니다.
-7. 승인된 한 단계의 최소 범위만 수정합니다.
-8. 완료 시 `npm test`, `npm run build`, 기존 기능, 수정 파일과 Git 커밋을 확인합니다.
+2. `git status -sb`와 현재 브랜치 `feat/category-quick-add-ux`를 확인합니다.
+3. 아이폰에서 `https://mirikkok-iphone-test.vercel.app`을 열어 최근 변경을 확인합니다.
+4. 실제 사용 중 발견한 UI·기능 문제와 최근 JSON 백업 여부를 사용자에게 먼저 묻습니다.
+5. 첫 개발 작업은 아이폰 테스트에서 발견된 문제를 기준으로 정합니다. 현재 별도 승인 대기 기능은 없습니다.
+6. Android 작업을 시작할 때는 JDK 설치 후 `npm run build && npx cap sync android`와 Gradle debug 빌드를 먼저 수행합니다.
+7. 작업 전 수정할 파일과 이유를 먼저 보고합니다.
+8. 승인된 한 단계의 최소 범위만 수정합니다.
+9. 완료 시 `npm test`, `npm run build`, 기존 기능, 수정 파일과 Git 커밋을 확인합니다.
 
 ## 관련 문서
 
