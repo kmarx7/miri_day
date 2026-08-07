@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import CalendarOccurrenceList from '../components/calendar/CalendarOccurrenceList.jsx'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
+import { getCategoryColor, getCategoryLabel } from '../constants/categories.js'
+import { getOccurrenceCategories } from '../utils/calendar.js'
 import { formatMonthTitle, formatShortDate, formatYmd, getMonthDays, parseYmdParts } from '../utils/dates.js'
 import { getCalendarMonthRange, getOccurrencesForRange } from '../utils/recurrence.js'
 
@@ -57,13 +59,16 @@ export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
             const dateKey = formatYmd(date)
             const isToday = dateKey === today
             const isSelected = dateKey === selectedDate
-            const itemCount = occurrencesByDate.get(dateKey)?.length ?? 0
+            const dateOccurrences = occurrencesByDate.get(dateKey) ?? []
+            const itemCount = dateOccurrences.length
+            const categories = getOccurrenceCategories(dateOccurrences)
+            const categoryLabel = categories.map(getCategoryLabel).join(', ')
             return (
               <button
                 key={dateKey}
                 type="button"
                 onClick={() => setSelectedDate(dateKey)}
-                aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일${isToday ? ', 오늘' : ''}${itemCount ? `, 일정 ${itemCount}개` : ''}`}
+                aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일${isToday ? ', 오늘' : ''}${itemCount ? `, 일정 ${itemCount}개, ${categoryLabel}` : ''}`}
                 aria-pressed={isSelected}
                 className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
               >
@@ -76,7 +81,15 @@ export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
                 }`}>
                   {date.getDate()}
                 </span>
-                <span className={`h-1.5 w-1.5 rounded-full ${itemCount ? 'bg-[#F0A65B]' : 'bg-transparent'}`} aria-hidden="true" />
+                <span className="flex h-1.5 items-center justify-center gap-0.5" aria-hidden="true">
+                  {categories.map((category) => (
+                    <span
+                      key={category}
+                      className="h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: getCategoryColor(category) }}
+                    />
+                  ))}
+                </span>
               </button>
             )
           })}
