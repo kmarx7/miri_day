@@ -263,6 +263,7 @@ export default function App() {
         items={displayItems}
         isSample={isSample}
         isPro={isPro}
+        testProEnabled={testProEnabled}
         onSelectCategory={selectCategory}
         onEditItem={openItemEditor}
         onOpenReport={() => navigate(SCREENS.REPORT)}
