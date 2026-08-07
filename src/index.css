@@ -101,7 +101,11 @@ button.memory-summary-button {
 }
 
 .category-screen {
-  padding-bottom: 10rem;
+  padding-bottom: 13rem;
+}
+
+body:has(.category-quick-options) .category-screen {
+  padding-bottom: 19rem;
 }
 
 .category-quick-add {
@@ -478,6 +482,14 @@ button.memory-summary-button {
   animation: snackbar-up 160ms ease-out;
 }
 
+.undo-snackbar-raised {
+  bottom: calc(13.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+body:has(.category-quick-options) .undo-snackbar-raised {
+  bottom: calc(19.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 .sheet-overlay {
   position: fixed;
   z-index: 50;
@@ -570,6 +582,22 @@ button.memory-summary-button {
 }
 
 @media (max-width: 360px) {
+  .category-screen {
+    padding-bottom: 17rem;
+  }
+
+  body:has(.category-quick-options) .category-screen {
+    padding-bottom: 25rem;
+  }
+
+  .undo-snackbar-raised {
+    bottom: calc(17.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has(.category-quick-options) .undo-snackbar-raised {
+    bottom: calc(25.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   .category-quick-main-with-amount {
     grid-template-columns: minmax(0, 1fr) 3rem;
   }

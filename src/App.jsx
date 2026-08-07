@@ -315,7 +315,7 @@ export default function App() {
           />
         </Suspense>
       )}
-      <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} />
+      <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} raised={screen === SCREENS.CATEGORY} />
     </>
   )
 }

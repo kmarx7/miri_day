@@ -1,8 +1,8 @@
-export default function UndoSnackbar({ deletion, onUndo }) {
+export default function UndoSnackbar({ deletion, onUndo, raised = false }) {
   if (!deletion) return null
 
   return (
-    <div className="undo-snackbar" role="status" aria-live="polite">
+    <div className={`undo-snackbar ${raised ? 'undo-snackbar-raised' : ''}`} role="status" aria-live="polite">
       <span className="min-w-0 flex-1 truncate text-sm">‘{deletion.item.title}’ 삭제됨</span>
       <button
         type="button"

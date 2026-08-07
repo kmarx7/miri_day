@@ -29,6 +29,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [dueTime, setDueTime] = useState('')
   const [datePreset, setDatePreset] = useState(DATE_PRESETS.TODAY)
   const [isLunar, setIsLunar] = useState(false)
   const [lunarYear, setLunarYear] = useState('')
@@ -65,6 +66,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
     setTitle(item?.title ?? '')
     setAmount(item?.amount === null || item?.amount === undefined ? '' : formatCurrencyInput(item.amount))
     setDueDate(initialDueDate)
+    setDueTime(item?.dueTime ?? '')
     setDatePreset(inferDatePreset(initialDueDate))
     setIsLunar(item?.isLunar === true)
     setLunarYear(initialLunar?.year ? String(initialLunar.year) : '')
@@ -249,6 +251,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
       title: title.trim(),
       amount: showAmount ? parseCurrencyInput(amount) : null,
       dueDate: isLunar ? lunarConversion.solarDate : (dueDate || null),
+      dueTime: dueTime || null,
       isLunar,
       lunarYear: isLunar ? Number(lunarYear) : null,
       lunarMonth: isLunar ? Number(lunarMonth) : null,
@@ -452,6 +455,17 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
               )}
             </fieldset>
 
+            <label className="mt-4 block">
+              <span className="text-sm font-semibold">시간 <span className="font-normal text-gray-400">(선택)</span></span>
+              <input
+                type="time"
+                value={dueTime}
+                onChange={(event) => setDueTime(event.target.value)}
+                aria-label="예정 시간"
+                className="mt-2 min-h-12 w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-4 text-base outline-none focus:border-black"
+              />
+            </label>
+
             <fieldset className="mt-5">
               <legend className="text-sm font-semibold">반복</legend>
               <div className="mt-2 grid grid-cols-3 gap-2">
@@ -503,7 +517,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
                 ))}
               </div>
               <p className="mt-2 text-xs leading-relaxed text-gray-400">
-                오전 9시(한국 시간)에 알려드려요. Free는 당일 알림을 사용할 수 있어요.
+                {dueTime ? `${dueTime}에` : '오전 9시(한국 시간)에'} 알려드려요. Free는 당일 알림을 사용할 수 있어요.
               </p>
               {notificationNotice && (
                 <p className="mt-2 rounded-xl border border-[#F3E5A6] bg-[#FFFEF5] px-3 py-2 text-xs font-medium leading-relaxed text-[#8A6517]" role="alert">
