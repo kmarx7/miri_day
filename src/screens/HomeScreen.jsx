@@ -3,10 +3,9 @@ import { CATEGORIES } from '../constants/categories.js'
 import CategoryGrid from '../components/home/CategoryGrid.jsx'
 import MemoryBanner from '../components/home/MemoryBanner.jsx'
 import TodayHighlights from '../components/home/TodayHighlights.jsx'
-import ManagementLinks from '../components/home/ManagementLinks.jsx'
 import { formatKoreanToday, formatYmd } from '../utils/dates.js'
 
-export default function HomeScreen({ items, isSample, isPro, testProEnabled = false, onSelectCategory, onEditItem, onOpenReport, onOpenBackup, onOpenSettings }) {
+export default function HomeScreen({ items, isSample, isPro, testProEnabled = false, onSelectCategory, onEditItem, onOpenSettings }) {
   const [memoryExpanded, setMemoryExpanded] = useState(false)
   const [highlightsExpanded, setHighlightsExpanded] = useState(false)
   const today = formatYmd(new Date())
@@ -62,7 +61,6 @@ export default function HomeScreen({ items, isSample, isPro, testProEnabled = fa
           onToggle={() => setHighlightsExpanded((value) => !value)}
           onEdit={onEditItem}
         />
-        <ManagementLinks onOpenReport={onOpenReport} onOpenBackup={onOpenBackup} />
       </div>
     </div>
   )

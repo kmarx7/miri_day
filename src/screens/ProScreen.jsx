@@ -17,7 +17,7 @@ const PRO_BENEFITS = [
 
 const formatPrice = (price) => `${new Intl.NumberFormat('ko-KR').format(price)}원`
 
-export default function ProScreen({ isPro = false, reason }) {
+export default function ProScreen({ isPro = false, reason, onOpenReport }) {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -41,6 +41,22 @@ export default function ProScreen({ isPro = false, reason }) {
           {reason.message}
         </p>
       )}
+
+      <section className="mb-6" aria-labelledby="pro-tools-heading">
+        <h2 id="pro-tools-heading" className="px-1 text-base font-bold">Pro 기능 바로가기</h2>
+        <button
+          type="button"
+          onClick={onOpenReport}
+          className="mt-3 flex min-h-20 w-full items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+        >
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#FFF4E8] text-lg font-extrabold text-[#C45A16]" aria-hidden="true">₩</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">돈 리포트</span>
+            <span className="mt-1 block text-xs leading-relaxed text-gray-500">월별·연간 금액과 완료·예정 내역 보기</span>
+          </span>
+          <span className="shrink-0 text-xl text-gray-400" aria-hidden="true">›</span>
+        </button>
+      </section>
 
       <section className="rounded-3xl bg-black p-6 text-white" aria-labelledby="pro-product-title">
         <div className="flex flex-wrap items-center justify-between gap-2">

@@ -255,6 +255,7 @@ export default function App() {
       <ProScreen
         isPro={isPro}
         reason={paywallReason}
+        onOpenReport={() => navigate(SCREENS.REPORT)}
       />
     )
   } else {
@@ -266,8 +267,6 @@ export default function App() {
         testProEnabled={testProEnabled}
         onSelectCategory={selectCategory}
         onEditItem={openItemEditor}
-        onOpenReport={() => navigate(SCREENS.REPORT)}
-        onOpenBackup={() => navigate(SCREENS.DATA)}
         onOpenSettings={() => navigate(SCREENS.SETTINGS)}
       />
     )
