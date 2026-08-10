@@ -1,6 +1,6 @@
 # 미리꼭 프로젝트 상태 및 다음 세션 인수인계
 
-마지막 갱신: 2026-08-07 (Asia/Seoul)
+마지막 갱신: 2026-08-10 (Asia/Seoul)
 
 이 문서는 다음 개발 세션을 시작할 때 가장 먼저 읽습니다. 실제 코드·Play Console·기기 상태가 바뀌었다면 먼저 이 문서와 체크리스트를 갱신합니다.
 
@@ -8,7 +8,7 @@
 
 미리꼭의 웹·PWA 기반과 주요 로컬 기능은 구현되어 있습니다. Android 프로젝트와 알림 계산 기반도 있지만, Google Play 유료 출시 준비가 모두 끝난 것은 아닙니다.
 
-아이폰 장기 사용 테스트용 PWA는 `https://mirikkok-iphone-test.vercel.app`에 최신 브랜치 기준으로 배포되어 있습니다. 테스트 배포에서는 `VITE_IPHONE_TEST_PRO=true`로 현재 구현된 Pro 기능을 사용할 수 있습니다. 다음 세션에서는 먼저 실제 사용 중 발견한 문제와 JSON 백업 여부를 확인합니다.
+아이폰 장기 사용 테스트용 PWA는 `https://mirikkok-iphone-test.vercel.app`에 최신 브랜치 기준으로 배포되어 있습니다. 2026-08-10에 자동 배포 브랜치 `release/iphone-pwa-test`를 작업 브랜치와 같은 커밋으로 맞춰, 배포 브랜치와 실제 라이브 내용이 일치합니다. 테스트 배포에서는 `VITE_IPHONE_TEST_PRO=true`로 현재 구현된 Pro 기능을 사용할 수 있습니다. 다음 세션에서는 먼저 실제 사용 중 발견한 문제와 JSON 백업 여부를 확인합니다.
 
 가장 먼저 결정할 사항은 다음 둘 중 하나입니다.
 
@@ -21,30 +21,57 @@
 
 - 원격 저장소: `git@github.com:kmarx7/miri_day.git`
 - 현재 작업 브랜치: `feat/category-quick-add-ux`
-- 최신 커밋: `cbbc9b2 feat: show category indicators in calendar`
+- 최신 기능 커밋: `cbbc9b2 feat: show category indicators in calendar` (이후는 문서 갱신 커밋)
+- 현재 HEAD는 `git log --oneline -1`로 확인합니다
 - 아이폰 PWA 최신 배포: Vercel production `READY`, 고정 주소 alias 유지
-- Vercel production branch: `release/iphone-pwa-test`
+- Vercel production branch: `release/iphone-pwa-test` (작업 브랜치와 같은 커밋 유지)
 - Google Play AAB 준비 커밋: `d6f2bff chore: prepare google play release bundle`
 - 기준 버전: `1.0.0`, versionCode `1`
 - package name: `com.mirikkok.app`
 
-현재 작업 브랜치는 `origin/feat/category-quick-add-ux`와 동기화되어 있습니다. `main`과 `release/iphone-pwa-test`에는 최신 UI 변경이 아직 병합되지 않았습니다. 정식 출시 전에는 Pull Request 또는 명시적인 병합 절차로 반영해야 합니다.
+`feat/category-quick-add-ux`, `origin/feat/category-quick-add-ux`, `release/iphone-pwa-test`, `origin/release/iphone-pwa-test`는 같은 커밋으로 정렬해 유지합니다. 특정 해시를 이 문서에 적어두면 다음 문서 갱신 커밋에서 곧바로 어긋나므로, 정렬 여부는 아래 명령으로 확인합니다.
+
+```
+git log --oneline release/iphone-pwa-test..feat/category-quick-add-ux
+```
+
+`main`에는 최신 UI 변경이 아직 병합되지 않았으므로 정식 출시 전에는 Pull Request 또는 명시적인 병합 절차로 반영해야 합니다.
+
+2026-08-10 이전에는 `release/iphone-pwa-test`가 `fa0f599`에 머물러 실제 배포본보다 9개 커밋 뒤처져 있었습니다. 당시 라이브는 브랜치 자동 배포가 아니라 작업 브랜치에서 직접 배포된 결과였고, 그 상태로 배포 브랜치에 push가 발생하면 라이브가 구버전으로 되돌아갈 수 있었습니다. 아래 9개 커밋을 fast-forward(강제 푸시·히스토리 재작성 없음)로 반영해 이 불일치를 해소했습니다.
+
+- `80173aa feat: persist item due times`
+- `f9c9c4d feat: add category quick entry`
+- `5bb270d feat: add expandable item memos`
+- `7c892ca feat: refine compact home dashboard`
+- `25cf723 fix: improve mobile input accessibility`
+- `5ca1d9a fix: show iphone test pro status`
+- `9c1a2b2 feat: move money report entry to pro screen`
+- `cbbc9b2 feat: show category indicators in calendar`
+- `13ceb96 docs: update project handoff status`
+
+앞으로 아이폰 테스트 배포 내용을 바꿀 때는 작업 브랜치에서 직접 배포하지 말고 `release/iphone-pwa-test`에 반영해 자동 배포를 사용합니다. 두 경로를 섞으면 같은 불일치가 다시 발생합니다.
 
 ## 마지막 검증 결과
 
-- `npm test`: 81개 통과
-- `npm run build`: 성공
+### 2026-08-10 이번 세션에서 직접 확인
+
+- `npm test`: 81개 통과, 실패 0
+- `npm run build`: 성공(`dist/`를 덮어쓰지 않도록 임시 경로로 빌드)
+- 배포 HTTPS 응답: 200, Vercel `icn1` 엣지
+- 배포 `manifest.webmanifest`: 200, `display: standalone`, `lang: ko-KR`, 아이콘 192/512 정상
+- 배포 `sw.js`와 아이콘 파일: 200 응답
+- 테스트 Pro 활성화: 배포 번들에 `VITE_IPHONE_TEST_PRO=true`가 인라인된 것을 확인
+- 배포본과 코드 일치: 현재 브랜치를 `VITE_IPHONE_TEST_PRO=true`로 빌드한 결과가 배포된 `index-DwUjw1Cr.js`, `CalendarScreen-Bb4ZnStx.js`와 SHA-256 동일
+
+### 이전 세션 기록(이번 세션에서 재검증하지 않음)
+
+- 배포 service worker `activated` 상태와 홈·캘린더 브라우저 콘솔 검증: 브라우저 실행이 필요해 이번 세션에서는 확인하지 않음
 - `npx cap sync android`: 이전 실행 성공(최신 웹 변경 후 Android 작업 전에 다시 실행 필요)
 - Android Gradle debug/release: 현재 Mac에 Java Runtime이 없어 실행 불가
 - Android `lintRelease`/`bundleRelease`: 이전 단계 성공 기록은 있으나 최신 브랜치 기준 재검증 필요
 - R8 코드 축소와 리소스 축소: 설정 활성화
 - AAB 서명 상태: 실제 업로드 키가 없어 미서명
 - 실제 Android 기기 release 검증: 미완료
-- Vercel production 배포: `READY`
-- 배포 HTTPS 응답: 200
-- 배포 manifest: 정상
-- 배포 service worker: `activated`
-- 배포 홈·캘린더 브라우저 검증: 성공, 콘솔 오류 없음
 
 `dist/`, Android 빌드 결과와 실제 서명 파일은 Git에 포함하지 않습니다. 다음 세션에서는 작업을 시작하기 전에 현재 작업 트리와 AAB 존재 여부를 다시 확인합니다.
 
@@ -55,7 +82,7 @@
 - 테스트 권한: Vercel의 `VITE_IPHONE_TEST_PRO=true` 설정으로 현재 구현된 Pro 기능 활성화
 - 적용 범위: 아이폰 테스트 배포만 해당하며 Google Play용 정식 구매 권한과 분리
 - GitHub 연결 저장소: `kmarx7/miri_day`
-- 자동 production 배포 브랜치: `release/iphone-pwa-test`
+- 자동 production 배포 브랜치: `release/iphone-pwa-test` (작업 브랜치와 같은 커밋 유지)
 - 데이터 저장: 해당 아이폰과 HTTPS origin의 `localStorage`
 
 아이폰 Safari에서 주소를 연 뒤 `공유 > 홈 화면에 추가 > 웹 앱으로 열기`를 사용합니다. 테스트 중에는 같은 고정 주소만 사용하고 앱 삭제, Safari 사이트 데이터 삭제와 개인정보 보호 모드를 피합니다. 중요한 일정은 앱의 JSON 백업 기능으로 정기적으로 보관합니다.
@@ -215,7 +242,7 @@ Google Play에는 개인 개발자 계정과 조직 계정이 있으며 개인 �
 ## 다음 세션 시작 절차
 
 1. 이 문서와 `README.md`의 알려진 제한사항을 읽습니다.
-2. `git status -sb`와 현재 브랜치 `feat/category-quick-add-ux`를 확인합니다.
+2. `git status -sb`와 현재 브랜치 `feat/category-quick-add-ux`를 확인하고, `git log --oneline release/iphone-pwa-test..feat/category-quick-add-ux`가 비어 있는지로 배포 브랜치 동기화를 함께 확인합니다.
 3. 아이폰에서 `https://mirikkok-iphone-test.vercel.app`을 열어 최근 변경을 확인합니다.
 4. 실제 사용 중 발견한 UI·기능 문제와 최근 JSON 백업 여부를 사용자에게 먼저 묻습니다.
 5. 첫 개발 작업은 아이폰 테스트에서 발견된 문제를 기준으로 정합니다. 현재 별도 승인 대기 기능은 없습니다.
