@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CATEGORIES, getCategoryActionColor, getCategoryColor } from '../../constants/categories.js'
+import { CATEGORIES, getCategoryActionVar, getCategoryColorVar } from '../../constants/categories.js'
 import { getMemoryKindEmoji, getMemoryKindLabel } from '../../constants/memoryKinds.js'
 import { formatCurrency } from '../../utils/currency.js'
 import { formatCompactCreatedAt, formatCompactDueDate, formatDDay } from '../../utils/dates.js'
@@ -156,7 +156,7 @@ export default function SwipeableItem({
   return (
     <article
       className={`swipe-item ${memoExpanded ? 'swipe-item-memo-open' : ''} ${showSwipeHint ? 'swipe-hint' : ''}`}
-      style={{ '--item-action': getCategoryActionColor(item.category) }}
+      style={{ '--item-action': getCategoryActionVar(item.category) }}
     >
       <div className="swipe-action swipe-action-complete" aria-hidden="true"><span>{completionLabel}</span></div>
       <div className="swipe-action swipe-action-delete" aria-hidden="true"><span>삭제</span></div>
@@ -169,7 +169,7 @@ export default function SwipeableItem({
         onPointerUp={finishGesture}
         onPointerCancel={cancelGesture}
       >
-        <span className="item-category-bar" style={{ backgroundColor: getCategoryColor(item.category) }} aria-hidden="true" />
+        <span className="item-category-bar" style={{ backgroundColor: getCategoryColorVar(item.category) }} aria-hidden="true" />
         <button
           type="button"
           onClick={() => completionAction?.(item.id)}

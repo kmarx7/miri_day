@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CATEGORIES, getCategoryActionColor, getCategoryLabel } from '../../constants/categories.js'
+import { CATEGORIES, getCategoryActionVar, getCategoryLabel } from '../../constants/categories.js'
 import { formatCurrencyInput } from '../../utils/currency.js'
 import { createQuickItemValues } from '../../utils/quickAdd.js'
 
@@ -22,7 +22,7 @@ export default function CategoryQuickAdd({ category, onSave }) {
   const memoRef = useRef(null)
 
   const categoryLabel = getCategoryLabel(category)
-  const actionColor = getCategoryActionColor(category)
+  const actionColor = getCategoryActionVar(category)
   const showAmount = category === CATEGORIES.PAYMENT || category === CATEGORIES.SHOPPING
 
   useEffect(() => {

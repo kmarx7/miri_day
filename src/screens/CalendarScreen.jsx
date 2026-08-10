@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import CalendarOccurrenceList from '../components/calendar/CalendarOccurrenceList.jsx'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
-import { getCategoryColor, getCategoryLabel } from '../constants/categories.js'
+import { getCategoryColorVar, getCategoryLabel } from '../constants/categories.js'
 import { getOccurrenceCategories } from '../utils/calendar.js'
 import { formatMonthTitle, formatShortDate, formatYmd, getMonthDays, parseYmdParts } from '../utils/dates.js'
 import { getCalendarMonthRange, getOccurrencesForRange } from '../utils/recurrence.js'
@@ -86,7 +86,7 @@ export default function CalendarScreen({ items, isSample, isPro, onEditItem }) {
                     <span
                       key={category}
                       className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: getCategoryColor(category) }}
+                      style={{ backgroundColor: getCategoryColorVar(category) }}
                     />
                   ))}
                 </span>

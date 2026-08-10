@@ -1,5 +1,5 @@
 import { formatDDay } from '../../utils/dates.js'
-import { getMemoryOccurrence } from '../../utils/lunar.js'
+import { getCurrentMonth, getMonthlyMemoryOccurrences } from '../../utils/memorySchedule.js'
 
 function LunarDate({ item }) {
   if (!item.isLunar || !item.lunarMonth || !item.lunarDay) return null
@@ -7,14 +7,12 @@ function LunarDate({ item }) {
 }
 
 export default function MemoryBanner({ items, expanded, onToggle, onOpen, isPro = false }) {
-  const upcoming = [...items]
-    .map((item) => ({ item, occurrence: getMemoryOccurrence(item, { isPro }) }))
-    .filter(({ occurrence }) => occurrence.date)
-    .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date))
-    .slice(0, 5)
+  // 홈에서는 이번 달에 돌아오는 기억할 것만 보여줍니다.
+  const currentMonth = getCurrentMonth()
+  const upcoming = getMonthlyMemoryOccurrences(items, { isPro })
 
   return (
-    <section className="overflow-hidden rounded-[1.25rem] border border-[#F1D66F] bg-[#FFFDF4] px-4" aria-labelledby="memory-heading">
+    <section className="memory-banner overflow-hidden px-4" aria-labelledby="memory-heading">
       <button
         type="button"
         onClick={onToggle}
@@ -22,23 +20,23 @@ export default function MemoryBanner({ items, expanded, onToggle, onOpen, isPro 
         aria-controls="memory-items"
         className="memory-summary-button flex w-full items-center gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       >
-        <span id="memory-heading" className="flex min-w-0 flex-1 items-center gap-2 text-sm font-extrabold text-[#965D08]">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[#F2C100]" aria-hidden="true" />
-          <span>기억할 것 {upcoming.length}</span>
+        <span id="memory-heading" className="flex min-w-0 flex-1 items-center gap-2 text-sm font-extrabold text-[color:var(--banner-ink)]">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[color:var(--banner-pip)]" aria-hidden="true" />
+          <span>{currentMonth}월 기억할 것 {upcoming.length}</span>
         </span>
-        {upcoming.length > 0 && <span className="shrink-0 text-xs font-extrabold text-[#2F6FDB]">{expanded ? '접기' : '더보기'}</span>}
+        {upcoming.length > 0 && <span className="shrink-0 text-xs font-extrabold text-[color:var(--cat-todo-action)]">{expanded ? '접기' : '더보기'}</span>}
       </button>
 
       {expanded && upcoming.length > 0 && (
-        <div id="memory-items" className="border-t border-[#F3DFA0] py-2">
+        <div id="memory-items" className="border-t border-[color:var(--banner-divider)] py-2">
           {upcoming.map(({ item, occurrence }) => (
             <button
               key={item.id}
               type="button"
               onClick={() => onOpen(item)}
-              className="flex min-h-14 w-full items-center gap-3 rounded-xl px-1 py-2 text-left hover:bg-[#FFF9D9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+              className="flex min-h-14 w-full items-center gap-3 rounded-xl px-1 py-2 text-left hover:bg-[color:var(--banner-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
             >
-              <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-xs font-bold text-white">{formatDDay(occurrence.date)}</span>
+              <span className="shrink-0 rounded-full bg-[color:var(--banner-pip)] px-2.5 py-1 text-xs font-bold text-[color:var(--banner-ink)]">{formatDDay(occurrence.date)}</span>
               <span className="flex min-w-0 flex-1 items-baseline gap-2">
                 <span className="min-w-0 truncate text-sm font-semibold">{item.title}</span>
                 <LunarDate item={item} />

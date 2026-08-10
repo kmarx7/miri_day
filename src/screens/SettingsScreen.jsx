@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import packageInfo from '../../package.json'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
-import { DEFAULT_THEME, getProStatus, getTheme, setTheme } from '../services/storageService.js'
+import { THEME_OPTIONS } from '../constants/themes.js'
+import { getProStatus, getTheme } from '../services/storageService.js'
+import { selectTheme } from '../services/themeService.js'
 import { getNotificationPermission, requestNotificationPermission } from '../services/notificationService.js'
 import { purchaseService, restorePurchases } from '../services/purchaseService.js'
 
@@ -70,9 +72,8 @@ export default function SettingsScreen({
     refreshNotificationPermission()
   }, [])
 
-  const selectBasicTheme = () => {
-    const nextTheme = setTheme(DEFAULT_THEME)
-    setThemeState(nextTheme)
+  const chooseTheme = (value) => {
+    setThemeState(selectTheme(value))
   }
 
   const handleRestorePurchases = async () => {
@@ -134,19 +135,41 @@ export default function SettingsScreen({
       </section>
 
       <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-5" aria-labelledby="theme-settings-heading">
-        <h2 id="theme-settings-heading" className="text-base font-bold">테마 설정</h2>
-        <button
-          type="button"
-          onClick={selectBasicTheme}
-          aria-pressed={theme === DEFAULT_THEME}
-          className="mt-3 flex min-h-14 w-full items-center justify-between rounded-xl border border-black bg-[#F7F7F8] px-4 text-left"
-        >
-          <span>
-            <span className="block text-sm font-bold">소프트 기본 테마</span>
-            <span className="mt-1 block text-xs text-gray-500">현재 제공되는 기본 테마</span>
-          </span>
-          <span className="text-sm font-bold" aria-hidden="true">✓</span>
-        </button>
+        <h2 id="theme-settings-heading" className="text-base font-bold">테마</h2>
+        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+          고르면 바로 적용돼요. 다음에 열 때도 그대로 유지됩니다.
+        </p>
+        <div className="mt-3 grid gap-2" role="radiogroup" aria-labelledby="theme-settings-heading">
+          {THEME_OPTIONS.map((option) => {
+            const selected = theme === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => chooseTheme(option.value)}
+                className={`theme-option ${selected ? 'theme-option-selected' : ''}`}
+              >
+                <span className="theme-swatch" aria-hidden="true">
+                  {option.swatch.map((color, index) => (
+                    <span key={index} style={{ background: color }} />
+                  ))}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold">
+                    {option.label}
+                    {option.ground === 'dark' && (
+                      <span className="ml-1.5 align-middle text-[0.625rem] font-semibold text-gray-500">어두운 바탕</span>
+                    )}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-gray-500">{option.description}</span>
+                </span>
+                <span className="theme-check" aria-hidden="true">{selected ? '✓' : ''}</span>
+              </button>
+            )
+          })}
+        </div>
       </section>
 
       <section className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white" aria-label="데이터 설정">

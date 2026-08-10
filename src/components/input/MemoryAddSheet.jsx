@@ -1,41 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  MEMORY_KIND_EMOJIS,
-  MEMORY_KIND_LABELS,
-  MEMORY_KIND_VALUES,
-} from '../../constants/memoryKinds.js'
-import { REPEAT_TYPES } from '../../models/item.js'
-import { FEATURES } from '../../services/entitlementService.js'
-import { formatKoreanYmd } from '../../utils/dates.js'
-import {
-  MEMORY_MONTH_OPTIONS,
-  createMemoryItemValues,
-  getMemoryDayOptions,
-  resolveMemorySchedule,
-  toMemoryFormValues,
-} from '../../utils/memorySchedule.js'
+import { useEffect, useRef, useState } from 'react'
+import { CATEGORIES, getCategoryActionVar, getCategoryColorVar } from '../../constants/categories.js'
+import { useMemoryForm } from '../../hooks/useMemoryForm.js'
+import { requestNotificationPermission } from '../../services/notificationService.js'
+import MemoryFormFields from './MemoryFormFields.jsx'
 
 const HISTORY_KEY = 'mirikkokMemoryEditor'
 
-const CALENDAR_OPTIONS = [
-  { value: false, label: '양력' },
-  { value: true, label: '음력' },
-]
-
-const REPEAT_OPTIONS = [
-  { value: REPEAT_TYPES.YEARLY, label: '매년' },
-  { value: REPEAT_TYPES.NONE, label: '1회만' },
-]
-
 export default function MemoryAddSheet({ open, item = null, isPro = false, onClose, onSave, onRequirePro }) {
   const [title, setTitle] = useState('')
-  const [memoryKind, setMemoryKind] = useState(MEMORY_KIND_VALUES[0])
-  const [month, setMonth] = useState(1)
-  const [day, setDay] = useState(1)
-  const [isLunar, setIsLunar] = useState(false)
-  const [isLeapMonth, setIsLeapMonth] = useState(false)
-  const [repeatType, setRepeatType] = useState(REPEAT_TYPES.NONE)
-  const [notice, setNotice] = useState('')
+  const [saving, setSaving] = useState(false)
   const [viewport, setViewport] = useState(null)
   const dialogRef = useRef(null)
   const onCloseRef = useRef(onClose)
@@ -43,19 +16,13 @@ export default function MemoryAddSheet({ open, item = null, isPro = false, onClo
 
   onCloseRef.current = onClose
 
+  const form = useMemoryForm({ active: open, item, isPro, onRequirePro })
+
   useEffect(() => {
     if (!open) return
-
-    const values = toMemoryFormValues(item)
-    setTitle(values.title)
-    setMemoryKind(values.memoryKind)
-    setMonth(values.month)
-    setDay(values.day)
-    setIsLunar(values.isLunar)
-    setIsLeapMonth(values.isLeapMonth)
-    setRepeatType(item ? (item.repeatType ?? REPEAT_TYPES.NONE) : (isPro ? REPEAT_TYPES.YEARLY : REPEAT_TYPES.NONE))
-    setNotice('')
-  }, [isPro, item, open])
+    setTitle(item?.title ?? '')
+    setSaving(false)
+  }, [item, open])
 
   useEffect(() => {
     if (!open) return undefined
@@ -75,7 +42,7 @@ export default function MemoryAddSheet({ open, item = null, isPro = false, onClo
       if (event.key !== 'Tab') return
 
       const focusable = [...(dialogRef.current?.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       ) ?? [])]
       if (focusable.length === 0) return
       const first = focusable[0]
@@ -123,62 +90,41 @@ export default function MemoryAddSheet({ open, item = null, isPro = false, onClo
     }
   }, [open])
 
-  const dayOptions = useMemo(() => getMemoryDayOptions(month, isLunar), [isLunar, month])
-  const schedule = useMemo(
-    () => resolveMemorySchedule({ month, day, isLunar, isLeapMonth }),
-    [day, isLeapMonth, isLunar, month],
-  )
-
   if (!open) return null
 
   const editing = Boolean(item)
-  const canSave = Boolean(title.trim()) && schedule.valid
+  const canSave = Boolean(title.trim()) && form.schedule.valid && !saving
 
   const requestClose = () => {
     if (window.history.state?.[HISTORY_KEY]) window.history.back()
     else onClose()
   }
 
-  const selectCalendar = (nextIsLunar) => {
-    if (nextIsLunar === isLunar) return
-    setIsLunar(nextIsLunar)
-    setIsLeapMonth(false)
-    const maxDay = getMemoryDayOptions(month, nextIsLunar).length
-    if (day > maxDay) setDay(maxDay)
-    setNotice('')
-  }
-
-  const selectMonth = (nextMonth) => {
-    setMonth(nextMonth)
-    const maxDay = getMemoryDayOptions(nextMonth, isLunar).length
-    if (day > maxDay) setDay(maxDay)
-  }
-
-  const selectRepeatType = (value) => {
-    if (value === REPEAT_TYPES.YEARLY && !isPro && value !== item?.repeatType) {
-      setNotice('매년 반복은 Pro에서 사용할 수 있어요.')
-      onRequirePro?.(FEATURES.RECURRING_SCHEDULES)
-      return
-    }
-    setRepeatType(value)
-    setNotice('')
-  }
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    const values = createMemoryItemValues({
-      title,
-      memoryKind,
-      month,
-      day,
-      isLunar,
-      isLeapMonth,
-      repeatType: isPro || repeatType === item?.repeatType ? repeatType : REPEAT_TYPES.NONE,
-      memo: item?.memo ?? '',
-    })
+    if (saving) return
+
+    const values = form.buildValues(title)
     if (!values) return
 
+    setSaving(true)
+    if (form.notificationOffsets.length > 0) {
+      try {
+        const permission = await requestNotificationPermission()
+        if (permission.supported && permission.display !== 'granted') {
+          form.setNotice('알림 권한이 꺼져 있어요. 설정에서 허용하거나 알림 선택을 모두 해제해 주세요.')
+          setSaving(false)
+          return
+        }
+      } catch {
+        form.setNotice('알림 권한을 확인하지 못했어요. 알림 선택을 해제하면 항목은 저장할 수 있어요.')
+        setSaving(false)
+        return
+      }
+    }
+
     const saved = onSave?.(values)
+    setSaving(false)
     if (saved === false) return
     requestClose()
   }
@@ -192,7 +138,11 @@ export default function MemoryAddSheet({ open, item = null, isPro = false, onClo
     >
       <section
         ref={dialogRef}
-        className="bottom-sheet bottom-sheet-compact memory-sheet"
+        className="bottom-sheet bottom-sheet-compact themed-sheet"
+        style={{
+          '--sheet-accent': getCategoryColorVar(CATEGORIES.MEMORY),
+          '--sheet-accent-strong': getCategoryActionVar(CATEGORIES.MEMORY),
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="memory-editor-title"
@@ -207,123 +157,24 @@ export default function MemoryAddSheet({ open, item = null, isPro = false, onClo
                 type="button"
                 onClick={requestClose}
                 aria-label={editing ? '수정 화면 닫기' : '추가 화면 닫기'}
-                className="memory-sheet-close"
+                className="sheet-close"
               >
                 ×
               </button>
             </div>
 
-            <input
-              autoFocus
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              aria-label="기억할 내용"
-              placeholder="기억할 내용"
-              autoComplete="off"
-              enterKeyHint="done"
-              className="memory-title-input"
+            <MemoryFormFields
+              form={form}
+              isPro={isPro}
+              title={title}
+              onTitleChange={setTitle}
+              autoFocusTitle
             />
-
-            <fieldset className="memory-field">
-              <legend className="memory-field-label">종류</legend>
-              <div className="memory-kind-row">
-                {MEMORY_KIND_VALUES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setMemoryKind(value)}
-                    aria-pressed={memoryKind === value}
-                    className={`memory-chip ${memoryKind === value ? 'memory-chip-active' : ''}`}
-                  >
-                    <span aria-hidden="true">{MEMORY_KIND_EMOJIS[value]}</span> {MEMORY_KIND_LABELS[value]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="memory-field">
-              <legend className="memory-field-label">달력</legend>
-              <div className="memory-pair-row">
-                {CALENDAR_OPTIONS.map((option) => (
-                  <button
-                    key={option.label}
-                    type="button"
-                    onClick={() => selectCalendar(option.value)}
-                    aria-pressed={isLunar === option.value}
-                    className={`memory-toggle ${isLunar === option.value ? 'memory-toggle-active' : ''}`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="memory-field">
-              <legend className="memory-field-label">날짜</legend>
-              <div className="memory-pair-row">
-                <label className="memory-select">
-                  <span className="sr-only">{isLunar ? '음력 월' : '월'}</span>
-                  <select value={month} onChange={(event) => selectMonth(Number(event.target.value))}>
-                    {MEMORY_MONTH_OPTIONS.map((value) => (
-                      <option key={value} value={value}>{value}월</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="memory-select">
-                  <span className="sr-only">{isLunar ? '음력 일' : '일'}</span>
-                  <select value={day} onChange={(event) => setDay(Number(event.target.value))}>
-                    {dayOptions.map((value) => (
-                      <option key={value} value={value}>{value}일</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              {isLunar && (
-                <label className="memory-leap-check">
-                  <input
-                    type="checkbox"
-                    checked={isLeapMonth}
-                    onChange={(event) => setIsLeapMonth(event.target.checked)}
-                  />
-                  윤달로 입력
-                </label>
-              )}
-            </fieldset>
-
-            <fieldset className="memory-field">
-              <legend className="memory-field-label">반복</legend>
-              <div className="memory-pair-row">
-                {REPEAT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => selectRepeatType(option.value)}
-                    aria-pressed={repeatType === option.value}
-                    className={`memory-toggle ${repeatType === option.value ? 'memory-toggle-active' : ''}`}
-                  >
-                    {option.label}
-                    {option.value === REPEAT_TYPES.YEARLY && !isPro && <span className="memory-pro-tag">PRO</span>}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            {schedule.valid ? (
-              <p className="memory-preview" role="status">
-                {isLunar
-                  ? `음력 ${isLeapMonth ? '윤' : ''}${month}.${day} → ${formatKoreanYmd(schedule.dueDate)}에 알려드려요.`
-                  : `${formatKoreanYmd(schedule.dueDate)}에 알려드려요.`}
-              </p>
-            ) : (
-              <p className="memory-error" role="alert">{schedule.error}</p>
-            )}
-
-            {notice && <p className="memory-notice" role="status">{notice}</p>}
           </div>
 
           <div className="editor-footer">
-            <button type="submit" disabled={!canSave} className="memory-save-button">
-              {editing ? '수정 완료' : '저장'}
+            <button type="submit" disabled={!canSave} className="sheet-save-button">
+              {saving ? '권한 확인 중…' : (editing ? '수정 완료' : '저장')}
             </button>
           </div>
         </form>

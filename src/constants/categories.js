@@ -59,3 +59,17 @@ export function getCategoryColor(category) {
 export function getCategoryActionColor(category) {
   return CATEGORY_ACTION_COLORS[category] ?? '#171717'
 }
+
+/**
+ * 화면에서 쓰는 색은 테마에 따라 달라지므로 CSS 변수를 돌려줍니다.
+ * 위의 상수는 기본 테마 값이자 변수가 없을 때의 대비책입니다.
+ */
+export function getCategoryColorVar(category) {
+  if (!isCategory(category)) return CATEGORY_COLORS[CATEGORIES.TODO] ?? '#9CA3AF'
+  return `var(--cat-${category}, ${CATEGORY_COLORS[category]})`
+}
+
+export function getCategoryActionVar(category) {
+  if (!isCategory(category)) return '#171717'
+  return `var(--cat-${category}-action, ${CATEGORY_ACTION_COLORS[category]})`
+}

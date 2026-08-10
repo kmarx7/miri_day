@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
 import { downloadBackup, readBackupFile } from '../services/backupService.js'
 import { exportData, importData, resetUserData, validateBackupData } from '../services/storageService.js'
+import { initTheme } from '../services/themeService.js'
 
 export default function DataManagementScreen({ itemCount, onBack, onDataChanged }) {
   const inputRef = useRef(null)
@@ -54,6 +55,7 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
     setPayload(null)
     setFileName('')
     setReplacePending(false)
+    initTheme()
     onDataChanged?.()
   }
 
@@ -76,6 +78,7 @@ export default function DataManagementScreen({ itemCount, onBack, onDataChanged 
     setPayload(null)
     setFileName('')
     setMessage('기기에 저장된 아이템과 설정을 초기화했어요.')
+    initTheme()
     onDataChanged?.()
   }
 

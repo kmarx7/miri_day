@@ -5,7 +5,9 @@ import { MEMORY_KINDS } from '../src/constants/memoryKinds.js'
 import { REPEAT_TYPES, createItemModel } from '../src/models/item.js'
 import {
   createMemoryItemValues,
+  getCurrentMonth,
   getMemoryDayOptions,
+  getMonthlyMemoryOccurrences,
   resolveMemorySchedule,
   toMemoryFormValues,
 } from '../src/utils/memorySchedule.js'
@@ -67,14 +69,45 @@ test('제목이 비어 있으면 변환하지 않는다', () => {
   assert.equal(createMemoryItemValues({ title: '   ', month: 1, day: 1 }, NOW), null)
 })
 
-test('매월 같은 지원하지 않는 반복은 1회만으로 정규화된다', () => {
+test('양력은 매월 반복을 그대로 저장한다', () => {
   const values = createMemoryItemValues({
-    title: '결혼기념일',
+    title: '적금 납입일',
     month: 5,
     day: 20,
     repeatType: REPEAT_TYPES.MONTHLY,
   }, NOW)
+  assert.equal(values.repeatType, REPEAT_TYPES.MONTHLY)
+})
+
+test('음력은 매월 반복을 지원하지 않아 반복 없음으로 되돌린다', () => {
+  const values = createMemoryItemValues({
+    title: '할머니 제사',
+    month: 6,
+    day: 24,
+    isLunar: true,
+    repeatType: REPEAT_TYPES.MONTHLY,
+  }, NOW)
   assert.equal(values.repeatType, REPEAT_TYPES.NONE)
+})
+
+test('알림 오프셋은 중복과 잘못된 값을 걸러 저장한다', () => {
+  const values = createMemoryItemValues({
+    title: '어머니 생신',
+    month: 12,
+    day: 25,
+    notificationOffsets: [7, 3, 3, -1, 0, 'x'],
+  }, NOW)
+  assert.deepEqual(values.notificationOffsets, [7, 3, 0])
+})
+
+test('메모는 앞뒤 공백을 정리해 저장한다', () => {
+  const values = createMemoryItemValues({
+    title: '어머니 생신',
+    month: 12,
+    day: 25,
+    memo: '  케이크 예약  ',
+  }, NOW)
+  assert.equal(values.memo, '케이크 예약')
 })
 
 test('저장된 기억할 것은 폼 값으로 되돌릴 수 있다', () => {
@@ -113,4 +146,50 @@ test('기억할 것이 아닌 카테고리는 종류를 갖지 않는다', () =>
     title: '할 일',
   })
   assert.equal(item.memoryKind, null)
+})
+
+function memoryItem(overrides) {
+  return createItemModel({
+    category: CATEGORIES.MEMORY,
+    title: '기억할 것',
+    repeatType: REPEAT_TYPES.NONE,
+    ...overrides,
+  })
+}
+
+test('홈은 이번 달에 돌아오는 기억할 것만 보여준다', () => {
+  const inMonth = memoryItem({ id: 'in-month', title: '8월 생일', dueDate: '2026-08-20' })
+  const nextMonth = memoryItem({ id: 'next-month', title: '9월 생일', dueDate: '2026-09-02' })
+  const noDate = memoryItem({ id: 'no-date', title: '날짜 없음' })
+
+  const result = getMonthlyMemoryOccurrences([nextMonth, inMonth, noDate], { now: NOW })
+  assert.deepEqual(result.map(({ item }) => item.id), ['in-month'])
+})
+
+test('매년 반복은 올해 날짜로 다시 계산한 뒤 이번 달인지 판단한다', () => {
+  // 등록은 2020년이지만 매년 반복이라 2026년 8월로 다시 계산됩니다.
+  const yearly = memoryItem({
+    id: 'yearly',
+    title: '어머니 생신',
+    dueDate: '2020-08-28',
+    repeatType: REPEAT_TYPES.YEARLY,
+  })
+
+  const result = getMonthlyMemoryOccurrences([yearly], { now: NOW })
+  assert.equal(result.length, 1)
+  assert.equal(result[0].occurrence.date, '2026-08-28')
+})
+
+test('이번 달 기억할 것은 날짜가 이른 순서로 정렬된다', () => {
+  const late = memoryItem({ id: 'late', dueDate: '2026-08-28' })
+  const early = memoryItem({ id: 'early', dueDate: '2026-08-12' })
+
+  const result = getMonthlyMemoryOccurrences([late, early], { now: NOW })
+  assert.deepEqual(result.map(({ item }) => item.id), ['early', 'late'])
+})
+
+test('이번 달 번호는 Asia/Seoul 기준으로 계산한다', () => {
+  // 2026-08-31 22:00 UTC는 서울에서 이미 9월 1일입니다.
+  assert.equal(getCurrentMonth(new Date('2026-08-31T22:00:00.000Z')), 9)
+  assert.equal(getCurrentMonth(NOW), 8)
 })

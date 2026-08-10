@@ -2,7 +2,7 @@ import { CATEGORIES } from '../constants/categories.js'
 import { DEFAULT_MEMORY_KIND, isMemoryKind } from '../constants/memoryKinds.js'
 import { REPEAT_TYPES } from '../models/item.js'
 import { formatYmd, parseYmdParts } from './dates.js'
-import { getThisYearSolarForLunar, solarToLunar } from './lunar.js'
+import { getMemoryOccurrence, getThisYearSolarForLunar, solarToLunar } from './lunar.js'
 
 const MAX_SOLAR_SEARCH_YEARS = 8
 const LUNAR_MAX_DAY = 30
@@ -103,6 +103,12 @@ export function resolveMemorySchedule({ month, day, isLunar = false, isLeapMonth
   return { valid: true, error: null, dueDate, lunar: null }
 }
 
+function normalizeMemoryRepeatType(repeatType, isLunar) {
+  if (repeatType === REPEAT_TYPES.YEARLY) return REPEAT_TYPES.YEARLY
+  if (repeatType === REPEAT_TYPES.MONTHLY) return isLunar ? REPEAT_TYPES.NONE : REPEAT_TYPES.MONTHLY
+  return REPEAT_TYPES.NONE
+}
+
 /**
  * 기억할 것 시트 입력을 저장 가능한 아이템 값으로 변환합니다.
  * 제목이나 날짜가 유효하지 않으면 null을 반환합니다.
@@ -119,6 +125,7 @@ export function createMemoryItemValues({
   isLunar = false,
   isLeapMonth = false,
   repeatType = REPEAT_TYPES.YEARLY,
+  notificationOffsets = [0],
   memo = '',
 }, now = new Date()) {
   const normalizedTitle = typeof title === 'string' ? title.trim() : ''
@@ -139,10 +146,41 @@ export function createMemoryItemValues({
     lunarMonth: schedule.lunar?.month ?? null,
     lunarDay: schedule.lunar?.day ?? null,
     isLeapMonth: isLunar && isLeapMonth,
-    repeatType: repeatType === REPEAT_TYPES.YEARLY ? REPEAT_TYPES.YEARLY : REPEAT_TYPES.NONE,
-    notificationOffsets: [0],
+    // 음력은 아직 매년 반복만 계산할 수 있어 매월 선택은 반복 없음으로 되돌립니다.
+    repeatType: normalizeMemoryRepeatType(repeatType, isLunar),
+    notificationOffsets: Array.isArray(notificationOffsets)
+      ? [...new Set(notificationOffsets.filter((offset) => Number.isInteger(offset) && offset >= 0))]
+      : [],
     memo: typeof memo === 'string' ? memo.trim() : '',
   }
+}
+
+/**
+ * 이번 달(Asia/Seoul 기준)에 돌아오는 기억할 것만 골라 날짜순으로 돌려줍니다.
+ * 홈 화면은 이번 달 것만 보여주기 때문에 다음 달 이후 일정은 빠집니다.
+ *
+ * @param {import('../models/item.js').MirikkokItem[]} items
+ * @param {{ now?: Date, isPro?: boolean }} [options]
+ * @returns {{ item: import('../models/item.js').MirikkokItem, occurrence: Object }[]}
+ */
+export function getMonthlyMemoryOccurrences(items, { now = new Date(), isPro = false } = {}) {
+  if (!Array.isArray(items)) return []
+
+  const monthPrefix = formatYmd(now).slice(0, 7)
+  return items
+    .map((item) => ({ item, occurrence: getMemoryOccurrence(item, { now, isPro }) }))
+    .filter(({ occurrence }) => (
+      typeof occurrence.date === 'string' && occurrence.date.slice(0, 7) === monthPrefix
+    ))
+    .sort((a, b) => a.occurrence.date.localeCompare(b.occurrence.date))
+}
+
+/**
+ * @param {Date} [now]
+ * @returns {number} Asia/Seoul 기준 이번 달
+ */
+export function getCurrentMonth(now = new Date()) {
+  return parseYmdParts(formatYmd(now))?.month ?? now.getMonth() + 1
 }
 
 /**

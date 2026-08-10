@@ -14,7 +14,7 @@ export default class AppErrorBoundary extends Component {
     if (!this.state.hasError) return this.props.children
 
     return (
-      <main className="grid min-h-dvh place-items-center bg-[#F7F7F8] px-5 pt-safe pb-safe" role="main">
+      <main className="grid min-h-dvh place-items-center app-ground px-5 pt-safe pb-safe" role="main">
         <section className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center" role="alert">
           <p className="text-3xl" aria-hidden="true">!</p>
           <h1 className="mt-3 text-xl font-extrabold">앱을 다시 열어 주세요</h1>

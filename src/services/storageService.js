@@ -1,4 +1,5 @@
 import { isCategory } from '../constants/categories.js'
+import { DEFAULT_THEME, normalizeTheme } from '../constants/themes.js'
 import { ITEM_SCHEMA_VERSION, REPEAT_TYPES, createItemModel, normalizeStoredItem } from '../models/item.js'
 import { parseYmdParts } from '../utils/dates.js'
 
@@ -10,7 +11,7 @@ export const STORAGE_KEYS = Object.freeze({
   SAMPLE_DISMISSED: 'mirikkok_sample_dismissed',
 })
 
-export const DEFAULT_THEME = 'soft'
+export { DEFAULT_THEME }
 export const APP_NAME = '미리꼭'
 
 const memoryFallback = new Map()
@@ -232,11 +233,12 @@ export function setProStatus(isPro) {
 }
 
 export function getTheme() {
-  return safeGet(STORAGE_KEYS.THEME) || DEFAULT_THEME
+  // 목록에서 사라진 예전 테마 값은 기본 테마로 되돌립니다.
+  return normalizeTheme(safeGet(STORAGE_KEYS.THEME))
 }
 
 export function setTheme(theme) {
-  const nextTheme = typeof theme === 'string' && theme.trim() ? theme.trim() : DEFAULT_THEME
+  const nextTheme = normalizeTheme(theme)
   safeSet(STORAGE_KEYS.THEME, nextTheme)
   return nextTheme
 }

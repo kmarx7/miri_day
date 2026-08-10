@@ -1,11 +1,12 @@
 import { CATEGORIES } from '../../constants/categories.js'
 import { formatCurrency } from '../../utils/currency.js'
 
+// 색은 전부 테마 토큰을 따릅니다. index.css의 [data-theme] 블록이 실제 값을 정합니다.
 const CATEGORY_CARDS = [
-  { category: CATEGORIES.TODO, label: '할 것', color: 'bg-cardBlue', iconColor: 'text-[#2F6FDB]', iconBackground: 'bg-[#DCEAFF]' },
-  { category: CATEGORIES.PAYMENT, label: '낼 것', color: 'bg-cardOrange', iconColor: 'text-[#E95519]', iconBackground: 'bg-[#FFE8C7]' },
-  { category: CATEGORIES.SHOPPING, label: '살 것', color: 'bg-cardGreen', iconColor: 'text-[#16A36A]', iconBackground: 'bg-[#CFF7E6]' },
-  { category: CATEGORIES.THOUGHT, label: '생각할 것', color: 'bg-cardPurple', iconColor: 'text-[#7C3AED]', iconBackground: 'bg-[#EAE4FF]' },
+  { category: CATEGORIES.TODO, label: '할 것', key: 'todo' },
+  { category: CATEGORIES.PAYMENT, label: '낼 것', key: 'payment' },
+  { category: CATEGORIES.SHOPPING, label: '살 것', key: 'shopping' },
+  { category: CATEGORIES.THOUGHT, label: '생각할 것', key: 'thought' },
 ]
 
 function CategoryIcon({ category }) {
@@ -65,7 +66,7 @@ export default function CategoryGrid({ items, onSelect }) {
         <span className="text-xs text-gray-400">완료 전 일정</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {CATEGORY_CARDS.map(({ category, label, color, iconColor, iconBackground }) => {
+        {CATEGORY_CARDS.map(({ category, label, key }) => {
           const categoryItems = items.filter((item) => item.category === category && !item.completed)
           const amount = categoryItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
 
@@ -74,14 +75,19 @@ export default function CategoryGrid({ items, onSelect }) {
               key={category}
               type="button"
               onClick={() => onSelect(category)}
-              className={`${color} flex min-h-36 flex-col items-start justify-between rounded-[1.375rem] p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
+              className="category-tile flex min-h-36 flex-col items-start justify-between p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              style={{
+                '--tile-bg': `var(--cat-${key}-tint)`,
+                '--tile-ink': `var(--cat-${key}-ink)`,
+                '--tile-mark': `var(--cat-${key}-action)`,
+              }}
             >
-              <span className={`${iconBackground} ${iconColor} grid h-11 w-11 place-items-center rounded-2xl`} aria-hidden="true">
+              <span className="category-tile-icon grid h-11 w-11 place-items-center" aria-hidden="true">
                 <CategoryIcon category={category} />
               </span>
               <span className="mt-5 min-w-0">
                 <span className="block text-base font-bold leading-snug">{label}</span>
-                <span className="mt-1 block text-sm leading-snug text-gray-600">
+                <span className="category-tile-meta mt-1 block text-sm leading-snug">
                   {amount > 0 ? formatCurrency(amount) : `${categoryItems.length}개 남음`}
                 </span>
               </span>

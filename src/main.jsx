@@ -2,7 +2,11 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import AppErrorBoundary from './components/feedback/AppErrorBoundary.jsx'
+import { initTheme } from './services/themeService.js'
 import './index.css'
+
+// 첫 화면이 그려지기 전에 테마를 붙여 깜빡임을 막습니다.
+initTheme()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

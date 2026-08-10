@@ -1,4 +1,4 @@
-import { getCategoryColor, getCategoryLabel } from '../../constants/categories.js'
+import { getCategoryColorVar, getCategoryLabel } from '../../constants/categories.js'
 import { REPEAT_TYPES } from '../../models/item.js'
 import { formatCurrency } from '../../utils/currency.js'
 import { formatShortDate } from '../../utils/dates.js'
@@ -32,7 +32,7 @@ export default function CalendarOccurrenceList({ occurrences, onEdit }) {
             >
               <span
                 className="h-9 w-1 shrink-0 rounded-full"
-                style={{ backgroundColor: getCategoryColor(item.category) }}
+                style={{ backgroundColor: getCategoryColorVar(item.category) }}
                 aria-hidden="true"
               />
               <span className="min-w-0 flex-1">
