@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { getCategoryActionColor, getCategoryColor } from '../../constants/categories.js'
+import { CATEGORIES, getCategoryActionColor, getCategoryColor } from '../../constants/categories.js'
+import { getMemoryKindEmoji, getMemoryKindLabel } from '../../constants/memoryKinds.js'
 import { formatCurrency } from '../../utils/currency.js'
 import { formatCompactCreatedAt, formatCompactDueDate, formatDDay } from '../../utils/dates.js'
 import { clampSwipeOffset, resolveSwipeAction, SWIPE_ACTIONS } from '../../utils/swipe.js'
@@ -126,6 +127,11 @@ export default function SwipeableItem({
   const summary = (
     <>
       <span className="item-title-row">
+        {item.category === CATEGORIES.MEMORY && (
+          <span className="item-memory-kind" role="img" aria-label={getMemoryKindLabel(item.memoryKind)}>
+            {getMemoryKindEmoji(item.memoryKind)}
+          </span>
+        )}
         <span className={`item-title ${item.completed ? 'line-through' : ''}`}>{item.title}</span>
         {item.memo && (
           <span className="item-memo-indicator" role="img" aria-label="메모 있음"><MemoIcon /></span>

@@ -1,4 +1,5 @@
 import { CATEGORIES } from '../constants/categories.js'
+import { MEMORY_KINDS } from '../constants/memoryKinds.js'
 import { createItemModel, REPEAT_TYPES } from '../models/item.js'
 import { addDays, formatYmd } from '../utils/dates.js'
 
@@ -52,6 +53,7 @@ export const SAMPLE_ITEMS = Object.freeze([
   createItemModel({
     id: 'sample-memory-1',
     category: CATEGORIES.MEMORY,
+    memoryKind: MEMORY_KINDS.BIRTHDAY,
     title: '엄마 생일',
     dueDate: sampleDate(3),
     isLunar: true,
@@ -64,6 +66,7 @@ export const SAMPLE_ITEMS = Object.freeze([
   createItemModel({
     id: 'sample-memory-2',
     category: CATEGORIES.MEMORY,
+    memoryKind: MEMORY_KINDS.BIRTHDAY,
     title: '아빠 생일',
     dueDate: sampleDate(7),
     repeatType: REPEAT_TYPES.YEARLY,
@@ -72,6 +75,7 @@ export const SAMPLE_ITEMS = Object.freeze([
   createItemModel({
     id: 'sample-memory-3',
     category: CATEGORIES.MEMORY,
+    memoryKind: MEMORY_KINDS.ANNIVERSARY,
     title: '1000일 기념일',
     dueDate: sampleDate(12),
     repeatType: REPEAT_TYPES.YEARLY,
@@ -80,6 +84,7 @@ export const SAMPLE_ITEMS = Object.freeze([
   createItemModel({
     id: 'sample-memory-4',
     category: CATEGORIES.MEMORY,
+    memoryKind: MEMORY_KINDS.MEMORIAL,
     title: '할머니 제사',
     dueDate: sampleDate(18),
     isLunar: true,
@@ -92,6 +97,7 @@ export const SAMPLE_ITEMS = Object.freeze([
   createItemModel({
     id: 'sample-memory-5',
     category: CATEGORIES.MEMORY,
+    memoryKind: MEMORY_KINDS.ANNIVERSARY,
     title: '결혼기념일',
     dueDate: sampleDate(25),
     repeatType: REPEAT_TYPES.YEARLY,

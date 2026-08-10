@@ -29,6 +29,7 @@ const PolicyScreen = lazy(() => import('./screens/PolicyScreen.jsx'))
 const ProScreen = lazy(() => import('./screens/ProScreen.jsx'))
 const SettingsScreen = lazy(() => import('./screens/SettingsScreen.jsx'))
 const QuickAddSheet = lazy(() => import('./components/input/QuickAddSheet.jsx'))
+const MemoryAddSheet = lazy(() => import('./components/input/MemoryAddSheet.jsx'))
 const SCREENS = Object.freeze({
   HOME: 'home',
   CATEGORY: 'category',
@@ -47,6 +48,7 @@ export default function App() {
   ))
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES.TODO)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [memoryEditorOpen, setMemoryEditorOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [swipeHintAvailable, setSwipeHintAvailable] = useState(true)
   const [isPro, setIsPro] = useState(() => resolveProStatus(getProStatus()))
@@ -105,12 +107,14 @@ export default function App() {
   }
 
   const openPaywall = (decision) => {
+    const sheetOpen = editorOpen || memoryEditorOpen
     setPaywallReason(decision)
-    if (editorOpen) {
+    if (sheetOpen) {
       setEditorOpen(false)
+      setMemoryEditorOpen(false)
       setEditingItem(null)
     }
-    setAppScreen(SCREENS.PRO, { replace: editorOpen, consumeModal: editorOpen })
+    setAppScreen(SCREENS.PRO, { replace: sheetOpen, consumeModal: sheetOpen })
   }
 
   const requestPro = (feature) => requirePro(feature, { isPro }, openPaywall)
@@ -132,6 +136,16 @@ export default function App() {
 
   const closeItemEditor = () => {
     setEditorOpen(false)
+    setEditingItem(null)
+  }
+
+  const openNewMemory = () => {
+    setEditingItem(null)
+    setMemoryEditorOpen(true)
+  }
+
+  const closeMemoryEditor = () => {
+    setMemoryEditorOpen(false)
     setEditingItem(null)
   }
 
@@ -160,6 +174,7 @@ export default function App() {
       const nextScreen = getScreenFromHistory(event.state, SCREEN_VALUES, SCREENS.HOME)
       setScreen(nextScreen)
       setEditorOpen(false)
+      setMemoryEditorOpen(false)
       setEditingItem(null)
       if (nextScreen !== SCREENS.PRO) setPaywallReason(null)
     }
@@ -209,6 +224,7 @@ export default function App() {
         showSwipeHint={swipeHintAvailable}
         onSwipeHintShown={() => setSwipeHintAvailable(false)}
         onQuickAdd={saveItem}
+        onAddMemory={openNewMemory}
       />
     )
   } else if (screen === SCREENS.CALENDAR) {
@@ -315,7 +331,29 @@ export default function App() {
           />
         </Suspense>
       )}
-      <UndoSnackbar deletion={pendingDeletion} onUndo={undoDelete} raised={screen === SCREENS.CATEGORY} />
+      {memoryEditorOpen && (
+        <Suspense fallback={(
+          <div className="sheet-overlay" role="status" aria-live="polite">
+            <section className="bottom-sheet bottom-sheet-compact justify-center p-5">
+              <StatePanel title="입력 화면을 준비하고 있어요." loading />
+            </section>
+          </div>
+        )}>
+          <MemoryAddSheet
+            open
+            item={editingItem}
+            isPro={isPro}
+            onClose={closeMemoryEditor}
+            onSave={saveItem}
+            onRequirePro={requestPro}
+          />
+        </Suspense>
+      )}
+      <UndoSnackbar
+        deletion={pendingDeletion}
+        onUndo={undoDelete}
+        raised={screen === SCREENS.CATEGORY && selectedCategory !== CATEGORIES.MEMORY}
+      />
     </>
   )
 }

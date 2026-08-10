@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, CATEGORY_VALUES, getCategoryLabel } from '../../constants/categories.js'
+import {
+  DEFAULT_MEMORY_KIND,
+  MEMORY_KIND_EMOJIS,
+  MEMORY_KIND_LABELS,
+  MEMORY_KIND_VALUES,
+  isMemoryKind,
+} from '../../constants/memoryKinds.js'
 import { NOTIFICATION_OFFSETS, NOTIFICATION_OFFSET_LABELS } from '../../constants/notifications.js'
 import { REPEAT_TYPES } from '../../models/item.js'
 import { FEATURES } from '../../services/entitlementService.js'
@@ -26,6 +33,7 @@ const HISTORY_KEY = 'mirikkokItemEditor'
 
 export default function QuickAddSheet({ open, initialCategory, item, isPro = false, onClose, onSave, onRequirePro }) {
   const [category, setCategory] = useState(initialCategory ?? CATEGORIES.TODO)
+  const [memoryKind, setMemoryKind] = useState(DEFAULT_MEMORY_KIND)
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [dueDate, setDueDate] = useState('')
@@ -63,6 +71,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
         }
       : solarToLunar(initialDueDate)
     setCategory(item?.category ?? initialCategory ?? CATEGORIES.TODO)
+    setMemoryKind(isMemoryKind(item?.memoryKind) ? item.memoryKind : DEFAULT_MEMORY_KIND)
     setTitle(item?.title ?? '')
     setAmount(item?.amount === null || item?.amount === undefined ? '' : formatCurrencyInput(item.amount))
     setDueDate(initialDueDate)
@@ -248,6 +257,7 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
 
     const saved = onSave({
       category,
+      memoryKind: category === CATEGORIES.MEMORY ? memoryKind : null,
       title: title.trim(),
       amount: showAmount ? parseCurrencyInput(amount) : null,
       dueDate: isLunar ? lunarConversion.solarDate : (dueDate || null),
@@ -303,6 +313,27 @@ export default function QuickAddSheet({ open, initialCategory, item, isPro = fal
                 </button>
               ))}
             </div>
+
+            {category === CATEGORIES.MEMORY && (
+              <fieldset className="mt-4">
+                <legend className="text-sm font-semibold">종류</legend>
+                <div className="hide-scrollbar mt-2 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="기억할 것 종류 선택">
+                  {MEMORY_KIND_VALUES.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setMemoryKind(value)}
+                      aria-pressed={memoryKind === value}
+                      className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold ${
+                        memoryKind === value ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-500'
+                      }`}
+                    >
+                      <span aria-hidden="true">{MEMORY_KIND_EMOJIS[value]}</span> {MEMORY_KIND_LABELS[value]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             <label className="mt-4 block">
               <span className="text-sm font-semibold">제목</span>

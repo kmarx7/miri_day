@@ -1,6 +1,7 @@
 import { CATEGORIES, isCategory } from '../constants/categories.js'
+import { FALLBACK_MEMORY_KIND, isMemoryKind } from '../constants/memoryKinds.js'
 
-export const ITEM_SCHEMA_VERSION = 2
+export const ITEM_SCHEMA_VERSION = 3
 
 export const REPEAT_TYPES = Object.freeze({
   NONE: 'none',
@@ -13,10 +14,12 @@ const REPEAT_TYPE_VALUES = Object.freeze(Object.values(REPEAT_TYPES))
 /**
  * @typedef {'todo' | 'payment' | 'shopping' | 'thought' | 'memory'} ItemCategory
  * @typedef {'none' | 'yearly' | 'monthly'} RepeatType
+ * @typedef {'birthday' | 'anniversary' | 'memorial' | 'etc'} MemoryKind
  *
  * @typedef {Object} MirikkokItem
  * @property {string} id
  * @property {ItemCategory} category
+ * @property {MemoryKind | null} memoryKind
  * @property {string} title
  * @property {number | null} amount
  * @property {string | null} dueDate
@@ -61,6 +64,11 @@ function normalizeAmount(value, category) {
   return Number.isFinite(amount) && amount >= 0 ? amount : null
 }
 
+function normalizeMemoryKind(value, category) {
+  if (category !== CATEGORIES.MEMORY) return null
+  return isMemoryKind(value) ? value : FALLBACK_MEMORY_KIND
+}
+
 function normalizeNotificationOffsets(value) {
   if (!Array.isArray(value)) return []
   return [...new Set(value.filter((offset) => Number.isInteger(offset) && offset >= 0))]
@@ -88,6 +96,7 @@ export function createItemModel(input, now = new Date()) {
   return {
     id: nullableString(input.id) ?? createId(),
     category: input.category,
+    memoryKind: normalizeMemoryKind(input.memoryKind, input.category),
     title,
     amount: normalizeAmount(input.amount, input.category),
     dueDate: nullableString(input.dueDate),

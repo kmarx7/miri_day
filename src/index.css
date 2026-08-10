@@ -350,6 +350,12 @@ body:has(.category-quick-options) .category-screen {
   gap: 0.375rem;
 }
 
+.item-memory-kind {
+  flex: none;
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
 .item-title {
   min-width: 0;
   flex: 1;
@@ -516,6 +522,254 @@ body:has(.category-quick-options) .undo-snackbar-raised {
   background: white;
   animation: sheet-up 180ms ease-out;
   overscroll-behavior: contain;
+}
+
+.bottom-sheet-compact {
+  height: auto;
+  max-height: 92%;
+}
+
+/* 기억할 것 추가 시트: 검정 대신 카테고리 앰버를 선택 색으로 씁니다. */
+.memory-sheet {
+  --memory-accent: #e5b840;
+  --memory-accent-strong: #c89300;
+  --memory-accent-soft: #fdf4dc;
+  --memory-accent-ink: #7a5a0c;
+}
+
+.memory-sheet .editor-scroll-area {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.memory-sheet-close {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.memory-title-input {
+  display: block;
+  width: 100%;
+  min-height: 3.25rem;
+  margin-top: 0.875rem;
+  border: 1px solid #dce0e6;
+  border-radius: 0.875rem;
+  background: white;
+  padding: 0 1rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.memory-title-input:focus {
+  border-color: var(--memory-accent-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--memory-accent) 30%, transparent);
+}
+
+.memory-field {
+  margin-top: 1.25rem;
+  border: 0;
+  padding: 0;
+}
+
+.memory-field-label {
+  padding: 0;
+  color: #8a909c;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.memory-kind-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.125rem;
+}
+
+.memory-kind-row::-webkit-scrollbar {
+  display: none;
+}
+
+.memory-pair-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin-top: 0.5rem;
+}
+
+.memory-chip,
+.memory-toggle {
+  min-height: 3rem;
+  border: 1px solid #e3e6eb;
+  background: white;
+  color: #5b6270;
+  font-weight: 700;
+}
+
+.memory-chip {
+  flex: none;
+  border-radius: 999px;
+  padding: 0 1.125rem;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.memory-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 0.875rem;
+  padding: 0 0.75rem;
+  font-size: 1rem;
+}
+
+.memory-chip-active,
+.memory-toggle-active {
+  border-color: var(--memory-accent);
+  background: var(--memory-accent-soft);
+  color: var(--memory-accent-ink);
+  box-shadow: inset 0 0 0 1px var(--memory-accent);
+}
+
+.memory-pro-tag {
+  border-radius: 999px;
+  background: #f1f3f6;
+  padding: 0.0625rem 0.375rem;
+  color: #7b828f;
+  font-size: 0.625rem;
+  font-weight: 800;
+}
+
+.memory-select {
+  position: relative;
+  display: block;
+}
+
+.memory-select select {
+  width: 100%;
+  min-height: 3rem;
+  appearance: none;
+  border: 1px solid #e3e6eb;
+  border-radius: 0.875rem;
+  background: white;
+  padding: 0 2rem 0 1rem;
+  color: #2c313a;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.memory-select::after {
+  position: absolute;
+  top: 50%;
+  right: 0.875rem;
+  color: #98a0ad;
+  font-size: 0.75rem;
+  content: '⌄';
+  transform: translateY(-70%);
+  pointer-events: none;
+}
+
+.memory-select select:focus {
+  border-color: var(--memory-accent-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--memory-accent) 30%, transparent);
+}
+
+.memory-leap-check {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.memory-leap-check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--memory-accent-strong);
+}
+
+.memory-preview,
+.memory-error,
+.memory-notice {
+  margin-top: 1rem;
+  border-radius: 0.875rem;
+  padding: 0.6875rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.memory-preview {
+  background: var(--memory-accent-soft);
+  color: var(--memory-accent-ink);
+}
+
+.memory-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.memory-notice {
+  background: #f4f5f7;
+  color: #4b5563;
+}
+
+.memory-save-button {
+  width: 100%;
+  min-height: 3.25rem;
+  border: 0;
+  border-radius: 0.875rem;
+  background: var(--memory-accent);
+  color: #2e2205;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.memory-save-button:disabled {
+  background: #eceef2;
+  color: #a2a8b4;
+}
+
+.memory-add-button {
+  display: flex;
+  width: 100%;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border: 1.5px dashed #d3d7de;
+  border-radius: 1rem;
+  background: white;
+  color: #5b6270;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.memory-add-button:hover,
+.memory-add-button:focus-visible {
+  border-color: #e5b840;
+  background: #fffdf6;
+  color: #7a5a0c;
+}
+
+/* 빠른 입력 바가 없는 화면(기억할 것)은 아래 여백을 줄입니다. */
+.category-screen.category-screen-plain {
+  padding-bottom: 7rem;
 }
 
 .touch-target-switch::before {

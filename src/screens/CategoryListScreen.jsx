@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getCategoryLabel, getCompletionLabel } from '../constants/categories.js'
+import { CATEGORIES, getCategoryLabel, getCompletionLabel } from '../constants/categories.js'
 import ItemList from '../components/items/ItemList.jsx'
 import CategoryQuickAdd from '../components/input/CategoryQuickAdd.jsx'
 import ScreenHeader from '../components/layout/ScreenHeader.jsx'
@@ -17,10 +17,12 @@ export default function CategoryListScreen({
   showSwipeHint,
   onSwipeHintShown,
   onQuickAdd,
+  onAddMemory,
 }) {
   const [completedExpanded, setCompletedExpanded] = useState(true)
   const [expandedMemoId, setExpandedMemoId] = useState(null)
   const [displaySwipeHint] = useState(showSwipeHint)
+  const isMemory = category === CATEGORIES.MEMORY
   const categoryItems = items.filter((item) => item.category === category)
   const activeItems = categoryItems.filter((item) => !item.completed)
   const completedItems = categoryItems.filter((item) => item.completed)
@@ -33,13 +35,19 @@ export default function CategoryListScreen({
   }, [activeItems.length, displaySwipeHint, isSample, onSwipeHintShown])
 
   return (
-    <div className="category-screen pt-5">
+    <div className={`category-screen pt-5 ${isMemory ? 'category-screen-plain' : ''}`}>
       <ScreenHeader
         eyebrow={isSample ? '샘플 미리보기' : `${activeItems.length}개 남음`}
         title={getCategoryLabel(category)}
         description={amountTotal > 0 ? `남은 금액 ${formatCurrency(amountTotal)}` : '미리 기록하고 하나씩 정리해요.'}
         onBack={onBack}
       />
+
+      {isMemory && (
+        <button type="button" onClick={onAddMemory} className="memory-add-button mb-6">
+          <span aria-hidden="true">＋</span> 추가
+        </button>
+      )}
 
       <section aria-labelledby="active-items-heading">
         <h2 id="active-items-heading" className="mb-3 px-1 text-sm font-bold">진행 중 {activeItems.length}</h2>
@@ -84,7 +92,7 @@ export default function CategoryListScreen({
           )}
         </section>
       )}
-      <CategoryQuickAdd category={category} onSave={onQuickAdd} />
+      {!isMemory && <CategoryQuickAdd category={category} onSave={onQuickAdd} />}
     </div>
   )
 }
