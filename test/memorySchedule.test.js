@@ -5,7 +5,6 @@ import { MEMORY_KINDS } from '../src/constants/memoryKinds.js'
 import { REPEAT_TYPES, createItemModel } from '../src/models/item.js'
 import {
   createMemoryItemValues,
-  getCurrentMonth,
   getMemoryDayOptions,
   getMonthlyMemoryOccurrences,
   resolveMemorySchedule,
@@ -186,10 +185,4 @@ test('이번 달 기억할 것은 날짜가 이른 순서로 정렬된다', () =
 
   const result = getMonthlyMemoryOccurrences([late, early], { now: NOW })
   assert.deepEqual(result.map(({ item }) => item.id), ['early', 'late'])
-})
-
-test('이번 달 번호는 Asia/Seoul 기준으로 계산한다', () => {
-  // 2026-08-31 22:00 UTC는 서울에서 이미 9월 1일입니다.
-  assert.equal(getCurrentMonth(new Date('2026-08-31T22:00:00.000Z')), 9)
-  assert.equal(getCurrentMonth(NOW), 8)
 })

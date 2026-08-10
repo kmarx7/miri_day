@@ -51,7 +51,8 @@ export default function HomeScreen({ items, isSample, isPro, testProEnabled = fa
           items={memories}
           expanded={memoryExpanded}
           onToggle={() => setMemoryExpanded((value) => !value)}
-          onOpen={() => onSelectCategory(CATEGORIES.MEMORY)}
+          onOpenList={() => onSelectCategory(CATEGORIES.MEMORY)}
+          onEditItem={onEditItem}
           isPro={isPro}
         />
         <CategoryGrid items={items} onSelect={onSelectCategory} />

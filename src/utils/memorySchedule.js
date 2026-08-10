@@ -176,14 +176,6 @@ export function getMonthlyMemoryOccurrences(items, { now = new Date(), isPro = f
 }
 
 /**
- * @param {Date} [now]
- * @returns {number} Asia/Seoul 기준 이번 달
- */
-export function getCurrentMonth(now = new Date()) {
-  return parseYmdParts(formatYmd(now))?.month ?? now.getMonth() + 1
-}
-
-/**
  * 저장된 기억할 것을 시트 폼 상태로 되돌립니다.
  *
  * @param {import('../models/item.js').MirikkokItem | null} item
